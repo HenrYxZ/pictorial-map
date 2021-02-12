@@ -61,6 +61,11 @@ function main() {
     scene.add(root);
     root.position.set(-4, 0, -2);
     root.rotation.y = Math.PI / 6;
+
+    const box2 = root.clone();
+    scene.add(box2);
+    root.position.set(10, 0, -4);
+    root.rotation.y = -Math.PI / 12;
   });
 
   function resizeRendererToDisplaySize(renderer) {
