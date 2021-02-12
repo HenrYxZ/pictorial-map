@@ -44,7 +44,7 @@ function main() {
   const color = 0xFFFFFF;
   const intensity = 1;
   const light = new THREE.DirectionalLight(color, intensity);
-  light.position.set(5, 10, 2);
+  light.position.set(6, 10, -3);
   scene.add(light);
   scene.add(light.target);
 
@@ -53,6 +53,14 @@ function main() {
   gltfLoader.load('assets/test_cube.glb', (gltf) => {
     const root = gltf.scene;
     scene.add(root);
+  });
+
+  // Add box
+  gltfLoader.load('assets/box.glb', (gltf) => {
+    const root = gltf.scene;
+    scene.add(root);
+    root.position.set(-4, 0, -2);
+    root.rotation.y = Math.PI / 6;
   });
 
   function resizeRendererToDisplaySize(renderer) {
