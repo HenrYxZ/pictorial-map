@@ -49,28 +49,35 @@ function main() {
   const color = 0xFFFFFF;
   const intensity = 1;
   const light = new THREE.DirectionalLight(color, intensity);
+  light.castShadow = true;
   light.position.set(6, 10, -3);
   scene.add(light);
   scene.add(light.target);
+
+  // Add ambient light
+  const ambient_light = new THREE.AmbientLight(0x404040); // soft white light
+  scene.add(ambient_light);
 
   // Add test cube
   const gltfLoader = new GLTFLoader();
   gltfLoader.load('assets/test_cube.glb', (gltf) => {
     const root = gltf.scene;
+    root.castShadow = true;
     scene.add(root);
   });
 
   // Add box
   gltfLoader.load('assets/box.glb', (gltf) => {
-    const root = gltf.scene;
-    scene.add(root);
-    root.position.set(-4, 0, -2);
-    root.rotation.y = Math.PI / 6;
+    const box = gltf.scene;
+    scene.add(box);
+    box.position.set(-4, 0, -2);
+    box.rotation.y = Math.PI / 6;
+    box.castShadow = true;
 
     const box2 = root.clone();
     scene.add(box2);
-    root.position.set(10, 0, -4);
-    root.rotation.y = -Math.PI / 12;
+    box2.position.set(10, 0, -4);
+    box2.rotation.y = -Math.PI / 12;
   });
 
   // Set Scissor
