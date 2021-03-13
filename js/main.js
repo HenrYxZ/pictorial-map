@@ -1,6 +1,7 @@
 import * as THREE from 'https://threejsfundamentals.org/threejs/resources/threejs/r125/build/three.module.js';
 import {OrbitControls} from 'https://threejsfundamentals.org/threejs/resources/threejs/r125/examples/jsm/controls/OrbitControls.js';
 import {GLTFLoader} from 'https://threejsfundamentals.org/threejs/resources/threejs/r125/examples/jsm/loaders/GLTFLoader.js';
+import {FBXLoader} from 'https://threejsfundamentals.org/threejs/resources/threejs/r125/examples/jsm/loaders/FBXLoader.js';
 
 function main() {
   const canvas = document.querySelector('#c');
@@ -25,25 +26,19 @@ function main() {
   const scene = new THREE.Scene();
   scene.background = new THREE.Color('black');
 
+  const textureLoader = new THREE.TextureLoader();
+
   // Add plane
   const planeSize = 40;
-
-  const loader = new THREE.TextureLoader();
-  const texture = loader.load('https://threejsfundamentals.org/threejs/resources/images/checker.png');
-  texture.wrapS = THREE.RepeatWrapping;
-  texture.wrapT = THREE.RepeatWrapping;
-  texture.magFilter = THREE.NearestFilter;
-  const repeats = planeSize / 2;
-  texture.repeat.set(repeats, repeats);
-
   const planeGeo = new THREE.PlaneBufferGeometry(planeSize, planeSize);
+  const planeColor = 0xede1b4;
   const planeMat = new THREE.MeshPhongMaterial({
-    map: texture,
+    color: planeColor,
     side: THREE.DoubleSide,
   });
-  const mesh = new THREE.Mesh(planeGeo, planeMat);
-  mesh.rotation.x = Math.PI * -.5;
-  scene.add(mesh);
+  const plane = new THREE.Mesh(planeGeo, planeMat);
+  plane.rotation.x = Math.PI * -.5;
+  scene.add(plane);
 
   // Add directional light
   const color = 0xFFFFFF;
@@ -58,27 +53,16 @@ function main() {
   const ambient_light = new THREE.AmbientLight(0x404040); // soft white light
   scene.add(ambient_light);
 
-  // Add test cube
+  // Add test house
   const gltfLoader = new GLTFLoader();
-  gltfLoader.load('assets/test_cube.glb', (gltf) => {
-    const root = gltf.scene;
-    root.castShadow = true;
-    scene.add(root);
-  });
-
-  // Add box
-  gltfLoader.load('assets/box.glb', (gltf) => {
-    const box = gltf.scene;
-    scene.add(box);
-    box.position.set(-4, 0, -2);
-    box.rotation.y = Math.PI / 6;
-    box.castShadow = true;
-
-    const box2 = root.clone();
-    scene.add(box2);
-    box2.position.set(10, 0, -4);
-    box2.rotation.y = -Math.PI / 12;
-  });
+  gltfLoader.load(
+    'assets/square.glb',
+    gltf => {
+      const house = gltf.scene;
+      debugger;
+      scene.add(house);
+    }
+  );
 
   // Set Scissor
   function setScissorForElement(elem) {
