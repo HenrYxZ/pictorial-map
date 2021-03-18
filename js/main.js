@@ -5,7 +5,11 @@ import {FBXLoader} from 'https://threejsfundamentals.org/threejs/resources/three
 
 function main() {
   const canvas = document.querySelector('#c');
-  const renderer = new THREE.WebGLRenderer({canvas});
+  const renderer = new THREE.WebGLRenderer({canvas, antialias: true});
+  renderer.shadowMap.enabled = true;
+  // to antialias the shadow
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
 
   // Set Camera
   const size = 1;
@@ -37,6 +41,7 @@ function main() {
     side: THREE.DoubleSide,
   });
   const plane = new THREE.Mesh(planeGeo, planeMat);
+  plane.receiveShadow = true;
   plane.rotation.x = Math.PI * -.5;
   scene.add(plane);
 
@@ -45,12 +50,12 @@ function main() {
   const intensity = 1;
   const light = new THREE.DirectionalLight(color, intensity);
   light.castShadow = true;
-  light.position.set(6, 10, -3);
+  light.position.set(6, 20, -3);
   scene.add(light);
   scene.add(light.target);
 
   // Add ambient light
-  const ambient_light = new THREE.AmbientLight(0x404040); // soft white light
+  const ambient_light = new THREE.AmbientLight(0x78756d); // soft white light
   scene.add(ambient_light);
 
   // Add test house
@@ -58,9 +63,11 @@ function main() {
   gltfLoader.load(
     'assets/square.glb',
     gltf => {
-      const house = gltf.scene;
-      debugger;
-      scene.add(house);
+      const group = gltf.scene;
+      group.traverse(
+        child => { if (child.isMesh) child.castShadow = true; }
+      );
+      scene.add(group);
     }
   );
 
