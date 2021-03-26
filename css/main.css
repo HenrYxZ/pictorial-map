@@ -7,3 +7,8 @@ html, body {
   height: 100%;
   display: block;
 }
+#displacemente-map {
+  display: none;
+  width: 100%;
+  height: 100%;
+}

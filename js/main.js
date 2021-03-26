@@ -1,9 +1,40 @@
 import * as THREE from 'https://threejsfundamentals.org/threejs/resources/threejs/r125/build/three.module.js';
 import {OrbitControls} from 'https://threejsfundamentals.org/threejs/resources/threejs/r125/examples/jsm/controls/OrbitControls.js';
 import {GLTFLoader} from 'https://threejsfundamentals.org/threejs/resources/threejs/r125/examples/jsm/loaders/GLTFLoader.js';
-import {FBXLoader} from 'https://threejsfundamentals.org/threejs/resources/threejs/r125/examples/jsm/loaders/FBXLoader.js';
+import {Placer} from './placement.js';
 
-function main() {
+const gltfLoader = new GLTFLoader();
+const GROUND_COLOR = new THREE.Color('rgb(161, 153, 95)');
+
+async function asyncLoad(filepath) {
+  return new Promise(
+    (resolve, reject) => {
+      gltfLoader.load(
+        filepath, data => resolve(data), null, reject
+      )
+    }
+  );
+}
+
+async function loadObject(assetObject) {
+  const gltfData = await asyncLoad(assetObject.filepath);
+  const newAsset = gltfData.scene;
+  console.log("Loaded: " + assetObject.name);
+  return newAsset;
+}
+
+async function loadAssets() {
+  const assetsResponse = await fetch('./js/assets.json');
+  const assetsJSON = await assetsResponse.json();
+  const assets = [];
+  for (let i = 0; i < assetsJSON.length; i++) {
+    const newAsset = await loadObject(assetsJSON[i]);
+    assets.push(newAsset);
+  }
+  return assets;
+}
+
+async function main() {
   const canvas = document.querySelector('#c');
   const renderer = new THREE.WebGLRenderer({canvas, antialias: true});
   renderer.shadowMap.enabled = true;
@@ -35,9 +66,8 @@ function main() {
   // Add plane
   const planeSize = 40;
   const planeGeo = new THREE.PlaneBufferGeometry(planeSize, planeSize);
-  const planeColor = 0xede1b4;
   const planeMat = new THREE.MeshPhongMaterial({
-    color: planeColor,
+    color: GROUND_COLOR,
     side: THREE.DoubleSide,
   });
   const plane = new THREE.Mesh(planeGeo, planeMat);
@@ -58,18 +88,14 @@ function main() {
   const ambient_light = new THREE.AmbientLight(0x78756d); // soft white light
   scene.add(ambient_light);
 
-  // Add test house
-  const gltfLoader = new GLTFLoader();
-  gltfLoader.load(
-    'assets/square.glb',
-    gltf => {
-      const group = gltf.scene;
-      group.traverse(
-        child => { if (child.isMesh) child.castShadow = true; }
-      );
-      scene.add(group);
-    }
-  );
+  // Load assets
+  const assets = await loadAssets();
+
+  // Add scene objects from placement map
+  const placer = new Placer(scene, assets);
+  const placementResponse = await fetch('./js/placement.json');
+  const placement = await placementResponse.json();
+  placer.usePlacement(placement);
 
   // Set Scissor
   function setScissorForElement(elem) {
@@ -94,8 +120,6 @@ function main() {
     return width / height;
   }
 
-
-
   // Resize display
   function resizeRendererToDisplaySize(renderer) {
     const canvas = renderer.domElement;
@@ -118,8 +142,8 @@ function main() {
     const aspect = setScissorForElement(canvas);
 
     // update the camera for this aspect
-    camera.left   = -aspect;
-    camera.right  =  aspect;
+    camera.left = -aspect;
+    camera.right = aspect;
     camera.updateProjectionMatrix();
 
     scene.background.set(0x000000);
@@ -131,4 +155,4 @@ function main() {
   requestAnimationFrame(render);
 }
 
-main();
+main().catch(error => console.error(error));
