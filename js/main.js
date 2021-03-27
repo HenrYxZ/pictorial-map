@@ -5,6 +5,9 @@ import {Placer} from './placement.js';
 
 const gltfLoader = new GLTFLoader();
 const GROUND_COLOR = new THREE.Color('rgb(161, 153, 95)');
+const MAP_WIDTH = 250;
+const MAP_HEIGHT = 250;
+const SHADOW_MAP_SIZE = 4096;
 
 async function asyncLoad(filepath) {
   return new Promise(
@@ -83,6 +86,14 @@ async function main() {
   light.position.set(6, 20, -3);
   scene.add(light);
   scene.add(light.target);
+  light.shadow.camera.left = -MAP_WIDTH / 2;
+  light.shadow.camera.right = MAP_WIDTH;
+  light.shadow.camera.bottom = -MAP_HEIGHT / 2;
+  light.shadow.camera.top = MAP_HEIGHT / 2;
+  light.shadow.camera.updateProjectionMatrix();
+  // Change shadow map size
+  light.shadow.mapSize.width = SHADOW_MAP_SIZE;
+  light.shadow.mapSize.height = SHADOW_MAP_SIZE;
 
   // Add ambient light
   const ambient_light = new THREE.AmbientLight(0x78756d); // soft white light
