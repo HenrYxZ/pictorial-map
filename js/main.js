@@ -5,9 +5,9 @@ import {Placer} from './placement.js';
 
 const gltfLoader = new GLTFLoader();
 const GROUND_COLOR = new THREE.Color('rgb(161, 153, 95)');
-const MAP_WIDTH = 250;
-const MAP_HEIGHT = 250;
-const SHADOW_MAP_SIZE = 4096;
+const MAP_WIDTH = 400;
+const MAP_HEIGHT = 400;
+const SHADOW_MAP_SIZE = 8192;
 
 async function asyncLoad(filepath) {
   return new Promise(
@@ -47,13 +47,13 @@ async function main() {
 
   // Set Camera
   const size = 1;
-  const near = 0.01;
-  const far = 1000;
+  const near = 0.0001;
+  const far = 10000;
   const camera = new THREE.OrthographicCamera(
     -size, size, size, -size, near, far
   );
   camera.zoom = 0.1;
-  camera.position.set(20, 20, 20);
+  camera.position.set(40, 40, 40);
 
   // Set Controls
   const controls = new OrbitControls(camera, canvas);
@@ -67,7 +67,7 @@ async function main() {
   const textureLoader = new THREE.TextureLoader();
 
   // Add plane
-  const planeSize = 40;
+  const planeSize = 400;
   const planeGeo = new THREE.PlaneBufferGeometry(planeSize, planeSize);
   const planeMat = new THREE.MeshPhongMaterial({
     color: GROUND_COLOR,

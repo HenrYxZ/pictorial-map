@@ -1,4 +1,5 @@
 [
   {"id": 1, "name": "square house", "filepath": "assets/square.glb"},
-  {"id": 2, "name": "box", "filepath": "assets/box.glb"}
+  {"id": 2, "name": "tree", "filepath": "assets/tree.glb"},
+  {"id": 3, "name": "rock", "filepath": "assets/rock.glb"}
 ]

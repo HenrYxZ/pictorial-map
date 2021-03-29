@@ -1,0 +1,17 @@
+[
+  {
+    "assetId": 1,
+    "probability": 0.88,
+    "footprint": 5
+  },
+  {
+    "assetId": 2,
+    "probability": 0.4,
+    "footprint": 1
+  },
+  {
+    "assetId": 3,
+    "probability": 0.3,
+    "footprint": 0.5
+  }
+]
