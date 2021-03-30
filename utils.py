@@ -95,6 +95,13 @@ def resize(img_arr, ratio):
     return new_img_arr
 
 
+def menu_str(options):
+    s = "Select an option:\n"
+    for opt_num, opt in enumerate(options, start=1):
+        s += f"[{opt_num}] for {opt}\n"
+    return s
+
+
 class Timer:
     def __init__(self):
         self.start_time = 0

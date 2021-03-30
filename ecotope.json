@@ -1,12 +1,12 @@
 [
   {
     "assetId": 1,
-    "probability": 0.88,
+    "probability": 0.6,
     "footprint": 5
   },
   {
     "assetId": 2,
-    "probability": 0.4,
+    "probability": 0.1,
     "footprint": 1
   },
   {

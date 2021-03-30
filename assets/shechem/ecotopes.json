@@ -1,0 +1,51 @@
+[
+  {
+    "name": "forest",
+    "priority": 1,
+    "footprint": 5,
+    "data": [
+      {
+        "assetId": 2,
+        "probability": 0.8,
+        "footprint": 2,
+        "allowOffset": 0.5
+      },
+      {
+        "assetId": 3,
+        "probability": 0.2,
+        "footprint": 0.5,
+        "allowRotation": true,
+        "allowOffset": 2
+      }
+    ]
+  },
+
+  {
+    "name": "houses",
+    "priority": 2,
+    "footprint": 5,
+    "data": [
+      {
+        "assetId": 1,
+        "probability": 0.8,
+        "footprint": 5,
+        "allowOffset": 0.05
+      }
+    ]
+  },
+
+  {
+    "name": "rockies",
+    "priority": 3,
+    "footprint": 5,
+    "data": [
+      {
+        "assetId": 3,
+        "probability": 0.9,
+        "footprint": 0.5,
+        "allowRotation": true,
+        "allowOffset": 2
+      }
+    ]
+  }
+]

@@ -27,7 +27,7 @@ async function loadObject(assetObject) {
 }
 
 async function loadAssets() {
-  const assetsResponse = await fetch('./js/assets.json');
+  const assetsResponse = await fetch('../js/assets.json');
   const assetsJSON = await assetsResponse.json();
   const assets = [];
   for (let i = 0; i < assetsJSON.length; i++) {
@@ -37,7 +37,7 @@ async function loadAssets() {
   return assets;
 }
 
-async function main() {
+export async function main(groundColor, mapName) {
   const canvas = document.querySelector('#c');
   const renderer = new THREE.WebGLRenderer({canvas, antialias: true});
   renderer.shadowMap.enabled = true;
@@ -47,7 +47,7 @@ async function main() {
 
   // Set Camera
   const size = 1;
-  const near = 0.0001;
+  const near = 0.00001;
   const far = 10000;
   const camera = new THREE.OrthographicCamera(
     -size, size, size, -size, near, far
@@ -67,10 +67,10 @@ async function main() {
   const textureLoader = new THREE.TextureLoader();
 
   // Add plane
-  const planeSize = 400;
+  const planeSize = 200;
   const planeGeo = new THREE.PlaneBufferGeometry(planeSize, planeSize);
   const planeMat = new THREE.MeshPhongMaterial({
-    color: GROUND_COLOR,
+    color: groundColor,
     side: THREE.DoubleSide,
   });
   const plane = new THREE.Mesh(planeGeo, planeMat);
@@ -104,7 +104,9 @@ async function main() {
 
   // Add scene objects from placement map
   const placer = new Placer(scene, assets);
-  const placementResponse = await fetch('./js/placement.json');
+  const placementResponse = await fetch(
+    '../assets/' + mapName + '/placement.json'
+  );
   const placement = await placementResponse.json();
   placer.usePlacement(placement);
 
@@ -165,5 +167,3 @@ async function main() {
 
   requestAnimationFrame(render);
 }
-
-main().catch(error => console.error(error));
