@@ -39,11 +39,7 @@ cities = ["Shechem", "Jerusalem"]
 chosen_option = "shechem"
 
 
-def create_ground(
-        height_map,
-        max_height=DEFAULT_MAX_HEIGHT,
-        pixel_size=HEIGHT_MAP_PIXEL_SIZE
-):
+def create_ground(height_map, max_height, pixel_size=HEIGHT_MAP_PIXEL_SIZE):
     """
     Gets a height_map that is a 2D array of floats from 0 to 1 and creates a
     JSON with two triangles for each pixel
@@ -129,7 +125,7 @@ def discretize_density(density_map, ecotope_name):
     return output
 
 
-def place_asset(asset, i, j, w, h, footprint):
+def place_asset(asset, i, j, w, h, footprint, height=0):
     if 'allowOffset' in asset:
         position_offset = (-0.5 + rng.random(2)) * asset['allowOffset']
     else:
@@ -144,7 +140,7 @@ def place_asset(asset, i, j, w, h, footprint):
     else:
         scale_offset = np.zeros(3)
     x = (i - w / 2 + 0.5 + position_offset[0]) * footprint
-    y = 0
+    y = height
     z = (j - h / 2 + 0.5 + position_offset[1]) * footprint
     pos = Point(x, y, z)
     scale = np.ones(3) - scale_offset
@@ -158,7 +154,7 @@ def place_asset(asset, i, j, w, h, footprint):
     return placement_dict
 
 
-def procedurally_place(placement_map, ecotope):
+def procedurally_place(placement_map, ecotope, height_map, max_height):
     ratio = int(PIXEL_SIZE // ecotope['footprint'])
     if ratio > 1:
         # Divide the pixels so that multiple assets can be placed
@@ -178,8 +174,9 @@ def procedurally_place(placement_map, ecotope):
                 for asset in ecotope['data']:
                     accumulated_prob += asset['probability']
                     if p <= accumulated_prob:
+                        height = height_map[j][i] * max_height
                         placement_dict = place_asset(
-                            asset, i, j, w, h, footprint
+                            asset, i, j, w, h, footprint, height
                         )
                         placement_json.append(placement_dict)
                         break
@@ -193,18 +190,25 @@ def main():
 
     # Load height map
     height_map_path = f"assets/{chosen_option}/{HEIGHT_MAP_FILENAME}"
-    if os.path.isfile(height_map_path):
-        img = Image.open(height_map_path)
-        grayscale = img.convert('L')
-        height_map = np.array(grayscale, dtype=float) / MAX_COLOR
-        # Create triangles for height map
-        height_map_json = create_ground(height_map)
-        # Store triangles into surface JSON
-        surface_path = f"assets/{chosen_option}/{SURFACE_FILENAME}"
-        with open(surface_path, 'w') as f:
-            json.dump(height_map_json, f, indent=JSON_INDENT)
-        print(f"Finished writing surface json file in {surface_path}")
-
+    if not os.path.isfile(height_map_path):
+        print(f"Height map {height_map_path} not found")
+    img = Image.open(height_map_path)
+    height_map_img = img.convert('L')
+    height_map = np.array(height_map_img, dtype=float) / MAX_COLOR
+    max_height = DEFAULT_MAX_HEIGHT
+    # Create triangles for height map
+    height_map_json = create_ground(height_map, max_height)
+    # Store triangles into surface JSON
+    surface_path = f"assets/{chosen_option}/{SURFACE_FILENAME}"
+    with open(surface_path, 'w') as f:
+        json.dump(height_map_json, f, indent=JSON_INDENT)
+    print(f"Finished writing surface json file in {surface_path}")
+    # Create a resized height map to use for placement
+    new_size = (DENSITY_MAP_SIZE, DENSITY_MAP_SIZE)
+    resized_height_map_img = height_map_img.resize(new_size)
+    resized_height_map = (
+        np.array(resized_height_map_img, dtype=float) / MAX_COLOR
+    )
     # Load ecotopes
     ecotopes_path = f"assets/{chosen_option}/{ECOTOPES_FILENAME}"
     with open(ecotopes_path, 'r') as f:
@@ -226,9 +230,11 @@ def main():
         density_map = density_map * (ones - combined_density_map)
         combined_density_map = density_map
         # Discretize
-        placement_map = discretize_density(density_map, ecotope_name)
+        placement_map = discretize_density(combined_density_map, ecotope_name)
         # Procedurally place
-        placement_json += procedurally_place(placement_map, ecotope)
+        placement_json += procedurally_place(
+            placement_map, ecotope, resized_height_map, max_height
+        )
     # Save placement array in JSON
     placement_path = f"assets/{chosen_option}/{PLACEMENT_FILENAME}"
     with open(placement_path, 'w') as f:

@@ -5,8 +5,8 @@ import {Placer} from './placement.js';
 
 const gltfLoader = new GLTFLoader();
 const GROUND_COLOR = new THREE.Color('rgb(161, 153, 95)');
-const MAP_WIDTH = 400;
-const MAP_HEIGHT = 400;
+const MAP_WIDTH = 320;
+const MAP_HEIGHT = 320;
 const SHADOW_MAP_SIZE = 8192;
 
 async function asyncLoad(filepath) {
@@ -37,6 +37,43 @@ async function loadAssets() {
   return assets;
 }
 
+function pointToVector(point) {
+  const v = new THREE.Vector3(point.x, point.y, point.z);
+  return v;
+}
+
+function pushPoint(point, arrayList) {
+  arrayList.push(point.x);
+  arrayList.push(point.y);
+  arrayList.push(point.z);
+}
+
+function pushTriangle(triangle, arrayList) {
+  pushPoint(triangle.v0, arrayList);
+  pushPoint(triangle.v1, arrayList);
+  pushPoint(triangle.v2, arrayList);
+}
+
+async function addSurface(groundColor, mapName, scene) {
+  const response = await fetch('../assets/' + mapName + '/surface.json');
+  const surface = await response.json();
+  const geom = new THREE.BufferGeometry();
+  const arrayList = [];
+  for (let i = 0; i < surface.length; i++) {
+    const triangle = surface[i];
+    pushTriangle(triangle, arrayList);
+  }
+  const vertices = new Float32Array(arrayList);
+  geom.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
+  geom.computeVertexNormals();
+  const material = new THREE.MeshPhongMaterial({
+    color: groundColor,
+    side: THREE.DoubleSide
+  });
+  const mesh = new THREE.Mesh(geom, material);
+  scene.add(mesh);
+}
+
 export async function main(groundColor, mapName) {
   const canvas = document.querySelector('#c');
   const renderer = new THREE.WebGLRenderer({canvas, antialias: true});
@@ -53,7 +90,7 @@ export async function main(groundColor, mapName) {
     -size, size, size, -size, near, far
   );
   camera.zoom = 0.1;
-  camera.position.set(40, 40, 40);
+  camera.position.set(MAP_WIDTH, MAP_HEIGHT, MAP_HEIGHT);
 
   // Set Controls
   const controls = new OrbitControls(camera, canvas);
@@ -64,26 +101,26 @@ export async function main(groundColor, mapName) {
   const scene = new THREE.Scene();
   scene.background = new THREE.Color('black');
 
-  const textureLoader = new THREE.TextureLoader();
-
   // Add plane
-  const planeSize = 200;
-  const planeGeo = new THREE.PlaneBufferGeometry(planeSize, planeSize);
-  const planeMat = new THREE.MeshPhongMaterial({
-    color: groundColor,
-    side: THREE.DoubleSide,
-  });
-  const plane = new THREE.Mesh(planeGeo, planeMat);
-  plane.receiveShadow = true;
-  plane.rotation.x = Math.PI * -.5;
-  scene.add(plane);
+  // const planeSize = 200;
+  // const planeGeo = new THREE.PlaneBufferGeometry(planeSize, planeSize);
+  // const planeMat = new THREE.MeshPhongMaterial({
+  //   color: groundColor,
+  //   side: THREE.DoubleSide,
+  // });
+  // const plane = new THREE.Mesh(planeGeo, planeMat);
+  // plane.receiveShadow = true;
+  // plane.rotation.x = Math.PI * -.5;
+  // scene.add(plane);
+  // Add Surface
+  await addSurface(groundColor, mapName, scene);
 
   // Add directional light
   const color = 0xFFFFFF;
   const intensity = 1;
   const light = new THREE.DirectionalLight(color, intensity);
   light.castShadow = true;
-  light.position.set(6, 20, -3);
+  light.position.set(30, 100, -15);
   scene.add(light);
   scene.add(light.target);
   light.shadow.camera.left = -MAP_WIDTH / 2;
