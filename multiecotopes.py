@@ -54,8 +54,8 @@ def create_ground(height_map, max_height, pixel_size=HEIGHT_MAP_PIXEL_SIZE):
     ground = []
     h, w = height_map.shape
     # Iterate through pixels creating two triangles on each
-    for j in range(h):
-        for i in range(w):
+    for j in range(h - 1):
+        for i in range(w - 1):
             x0 = (i - w / 2) * pixel_size
             x1 = x0 + pixel_size
             z0 = (j - h / 2) * pixel_size
@@ -67,15 +67,10 @@ def create_ground(height_map, max_height, pixel_size=HEIGHT_MAP_PIXEL_SIZE):
              ---|---|---           tr2 = v0, v3, v1
                 |   |  
             """
-            y0 = height_map[j][i]
-            if i == w - 1 or j == 0:
-                y1 = y0
-                y2 = y0
-                y3 = y0
-            else:
-                y1 = (height_map[j - 1][i + 1]) * max_height
-                y2 = (height_map[j - 1][i]) * max_height
-                y3 = (height_map[j][i + 1]) * max_height
+            y0 = height_map[j + 1][i] * max_height
+            y1 = height_map[j][i + 1] * max_height
+            y2 = height_map[j][i] * max_height
+            y3 = height_map[j + 1][i + 1] * max_height
             # Create vertices of two triangles
             v0 = Point(x0, y0, z1)
             v1 = Point(x1, y1, z0)
