@@ -101,17 +101,6 @@ export async function main(groundColor, mapName) {
   const scene = new THREE.Scene();
   scene.background = new THREE.Color('black');
 
-  // Add plane
-  // const planeSize = 200;
-  // const planeGeo = new THREE.PlaneBufferGeometry(planeSize, planeSize);
-  // const planeMat = new THREE.MeshPhongMaterial({
-  //   color: groundColor,
-  //   side: THREE.DoubleSide,
-  // });
-  // const plane = new THREE.Mesh(planeGeo, planeMat);
-  // plane.receiveShadow = true;
-  // plane.rotation.x = Math.PI * -.5;
-  // scene.add(plane);
   // Add Surface
   await addSurface(groundColor, mapName, scene);
 

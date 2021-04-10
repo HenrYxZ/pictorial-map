@@ -30,7 +30,7 @@
         "probability": 0.8,
         "footprint": 5,
         "allowOffset": 0.05,
-        "allowRotation": 0.39,
+        "allowRotation": 3.14159,
         "allowScale": 0.2
       }
     ]
