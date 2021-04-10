@@ -117,3 +117,17 @@ class Timer:
 
     def __str__(self):
         return humanize_time(self.elapsed_time)
+
+
+class Point:
+    def __init__(self, x, y, z):
+        self.x = x
+        self.y = y
+        self.z = z
+
+    def to_dict(self):
+        return {
+            'x': float(np.round(self.x, 3)),
+            'y': float(np.round(self.y, 3)),
+            'z': float(np.round(self.z, 3))
+        }

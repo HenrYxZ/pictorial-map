@@ -14,7 +14,7 @@
         "assetId": 3,
         "probability": 0.2,
         "footprint": 0.5,
-        "allowRotation": true,
+        "allowRotation": 6.28318,
         "allowOffset": 2
       }
     ]
@@ -29,7 +29,9 @@
         "assetId": 1,
         "probability": 0.8,
         "footprint": 5,
-        "allowOffset": 0.05
+        "allowOffset": 0.05,
+        "allowRotation": 3.14159,
+        "allowScale": 0.2
       }
     ]
   },
@@ -43,8 +45,9 @@
         "assetId": 3,
         "probability": 0.9,
         "footprint": 0.5,
-        "allowRotation": true,
-        "allowOffset": 2
+        "allowRotation": 6.28318,
+        "allowOffset": 2,
+        "allowScale": 0.4
       }
     ]
   }

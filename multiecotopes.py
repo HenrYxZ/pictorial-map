@@ -1,25 +1,29 @@
 import json
 import numpy as np
+import os.path
 from PIL import Image
 
 # Local modules
 import dithering
+from utils import Point
 import utils
 
 
 DENSITY_FILENAME = "density_map.png"
 PLACEMENT_MAP_FILENAME = "placement_map.jpg"
+HEIGHT_MAP_FILENAME = "height_map.png"
+SURFACE_FILENAME = "surface.json"
 PLACEMENT_FILENAME = "placement.json"
 ECOTOPES_FILENAME = "ecotopes.json"
 MAX_COLOR = 255
 MAX_QUALITY = 95
+ROUND_DECIMALS = 3
 # Indent 2 spaces in JSON files
 JSON_INDENT = 2
 # Allow only -+10% offset in position
 MAX_POS_OFFSET = 0.2
-# Only allow up to 10% scale
-MAX_SCALE = 0.1
-MAX_ROTATION = 2 * np.pi
+# Default maximum height for the ground
+DEFAULT_MAX_HEIGHT = 64
 # Allowed rotations
 ROTATIONS = [0, np.pi / 2, np.pi, 3 * np.pi / 2, 2 * np.pi]
 # Map size will be 200mt^2
@@ -27,10 +31,62 @@ MAP_SIZE = 200
 # Density maps will be 40x40 pixels
 DENSITY_MAP_SIZE = 40
 # Each pixel will represent 5 mt square
-pixel_size = 5
+PIXEL_SIZE = 8
+# Each pixel in height map will represent 1 mt^2
+HEIGHT_MAP_PIXEL_SIZE = 1
 rng = np.random.default_rng()
 cities = ["Shechem", "Jerusalem"]
 chosen_option = "shechem"
+
+
+def create_ground(height_map, max_height, pixel_size=HEIGHT_MAP_PIXEL_SIZE):
+    """
+    Gets a height_map that is a 2D array of floats from 0 to 1 and creates a
+    JSON with two triangles for each pixel
+    Args:
+        height_map(2darray): Map where each pixel represents a height
+        max_height(float): Maximum height for a vertex
+        pixel_size(float): Length of a side of a pixel in the height map
+    Returns:
+        dict: An array of triangles
+    """
+    print("Creating surface from height map...")
+    ground = []
+    h, w = height_map.shape
+    # Iterate through pixels creating two triangles on each
+    for j in range(h - 1):
+        for i in range(w - 1):
+            x0 = (i - w / 2) * pixel_size
+            x1 = x0 + pixel_size
+            z0 = (j - h / 2) * pixel_size
+            z1 = z0 + pixel_size
+            """
+                |v2 |v1
+             ---|---|---           tr1 = v0, v1, v2
+                |v0 |v3
+             ---|---|---           tr2 = v0, v3, v1
+                |   |  
+            """
+            y0 = height_map[j + 1][i] * max_height
+            y1 = height_map[j][i + 1] * max_height
+            y2 = height_map[j][i] * max_height
+            y3 = height_map[j + 1][i + 1] * max_height
+            # Create vertices of two triangles
+            v0 = Point(x0, y0, z1)
+            v1 = Point(x1, y1, z0)
+            v2 = Point(x0, y2, z0)
+            v3 = Point(x1, y3, z1)
+            ground.append({
+                'v0': v0.to_dict(),
+                'v1': v1.to_dict(),
+                'v2': v2.to_dict()
+            })
+            ground.append({
+                'v0': v0.to_dict(),
+                'v1': v3.to_dict(),
+                'v2': v1.to_dict()
+            })
+    return ground
 
 
 def discretize_density(density_map, ecotope_name):
@@ -64,38 +120,43 @@ def discretize_density(density_map, ecotope_name):
     return output
 
 
-def place_asset(asset, i, j, w, h, footprint):
+def place_asset(asset, i, j, w, h, footprint, height=0):
     if 'allowOffset' in asset:
         position_offset = (-0.5 + rng.random(2)) * asset['allowOffset']
     else:
         position_offset = np.zeros(2)
-    x = (i - w // 2 + 0.5 + position_offset[0]) * footprint
-    y = 0
-    z = (j - h // 2 + 0.5 + position_offset[1]) * footprint
     # rotation = rng.choice(ROTATIONS)
-    if "allowRotation" in asset:
-        rotation = rng.random() * MAX_ROTATION
+    if 'allowRotation' in asset:
+        rotation = rng.random() * asset['allowRotation']
     else:
         rotation = 0
-    scale_offset = rng.random() * MAX_SCALE
-    scale = 1 - scale_offset
+    if 'allowScale' in asset:
+        scale_offset = rng.random(3) * asset['allowScale']
+    else:
+        scale_offset = np.zeros(3)
+    x = (i - w / 2 + 0.5 + position_offset[0]) * footprint
+    y = height
+    z = (j - h / 2 + 0.5 + position_offset[1]) * footprint
+    pos = Point(x, y, z)
+    scale = np.ones(3) - scale_offset
+    s = Point(scale[0], scale[1], scale[2])
     placement_dict = {
         'assetId': asset['assetId'],
-        'position': {'x': x, 'y': y, 'z': z},
-        'rotation': rotation,
-        'scale': {'x': scale, 'y': scale, 'z': scale}
+        'position': pos.to_dict(),
+        'rotation': float(np.round(rotation, ROUND_DECIMALS)),
+        'scale': s.to_dict()
     }
     return placement_dict
 
 
-def procedurally_place(placement_map, ecotope):
-    ratio = int(pixel_size // ecotope['footprint'])
+def procedurally_place(placement_map, ecotope, height_map, max_height):
+    ratio = int(PIXEL_SIZE // ecotope['footprint'])
     if ratio > 1:
         # Divide the pixels so that multiple assets can be placed
         placement_map = utils.resize(placement_map, ratio)
-        footprint = pixel_size / ratio
+        footprint = PIXEL_SIZE / ratio
     else:
-        footprint = pixel_size
+        footprint = PIXEL_SIZE
     h, w = placement_map.shape
     # Iterate placing assets
     placement_json = []
@@ -108,8 +169,9 @@ def procedurally_place(placement_map, ecotope):
                 for asset in ecotope['data']:
                     accumulated_prob += asset['probability']
                     if p <= accumulated_prob:
+                        height = height_map[j][i] * max_height
                         placement_dict = place_asset(
-                            asset, i, j, w, h, footprint
+                            asset, i, j, w, h, footprint, height
                         )
                         placement_json.append(placement_dict)
                         break
@@ -120,6 +182,28 @@ def main():
     global chosen_option
     option = int(input(utils.menu_str(cities))) - 1
     chosen_option = cities[option].lower()
+
+    # Load height map
+    height_map_path = f"assets/{chosen_option}/{HEIGHT_MAP_FILENAME}"
+    if not os.path.isfile(height_map_path):
+        print(f"Height map {height_map_path} not found")
+    img = Image.open(height_map_path)
+    height_map_img = img.convert('L')
+    height_map = np.array(height_map_img, dtype=float) / MAX_COLOR
+    max_height = DEFAULT_MAX_HEIGHT
+    # Create triangles for height map
+    height_map_json = create_ground(height_map, max_height)
+    # Store triangles into surface JSON
+    surface_path = f"assets/{chosen_option}/{SURFACE_FILENAME}"
+    with open(surface_path, 'w') as f:
+        json.dump(height_map_json, f, indent=JSON_INDENT)
+    print(f"Finished writing surface json file in {surface_path}")
+    # Create a resized height map to use for placement
+    new_size = (DENSITY_MAP_SIZE, DENSITY_MAP_SIZE)
+    resized_height_map_img = height_map_img.resize(new_size)
+    resized_height_map = (
+        np.array(resized_height_map_img, dtype=float) / MAX_COLOR
+    )
     # Load ecotopes
     ecotopes_path = f"assets/{chosen_option}/{ECOTOPES_FILENAME}"
     with open(ecotopes_path, 'r') as f:
@@ -141,9 +225,11 @@ def main():
         density_map = density_map * (ones - combined_density_map)
         combined_density_map = density_map
         # Discretize
-        placement_map = discretize_density(density_map, ecotope_name)
+        placement_map = discretize_density(combined_density_map, ecotope_name)
         # Procedurally place
-        placement_json += procedurally_place(placement_map, ecotope)
+        placement_json += procedurally_place(
+            placement_map, ecotope, resized_height_map, max_height
+        )
     # Save placement array in JSON
     placement_path = f"assets/{chosen_option}/{PLACEMENT_FILENAME}"
     with open(placement_path, 'w') as f:
