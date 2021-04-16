@@ -23,14 +23,14 @@ JSON_INDENT = 2
 # Allow only -+10% offset in position
 MAX_POS_OFFSET = 0.2
 # Default maximum height for the ground
-DEFAULT_MAX_HEIGHT = 64
+DEFAULT_MAX_HEIGHT = 32
 # Allowed rotations
 ROTATIONS = [0, np.pi / 2, np.pi, 3 * np.pi / 2, 2 * np.pi]
 # Map size will be 200mt^2
 MAP_SIZE = 200
 # Density maps will be 40x40 pixels
 DENSITY_MAP_SIZE = 40
-# Each pixel will represent 5 mt square
+# Each pixel will represent 8 mt square
 PIXEL_SIZE = 8
 # Each pixel in height map will represent 1 mt^2
 HEIGHT_MAP_PIXEL_SIZE = 1

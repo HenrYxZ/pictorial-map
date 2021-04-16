@@ -1,5 +1,8 @@
 [
   {"id": 1, "name": "square house", "filepath": "../assets/square.glb"},
   {"id": 2, "name": "tree", "filepath": "../assets/tree.glb"},
-  {"id": 3, "name": "rock", "filepath": "../assets/rock.glb"}
+  {"id": 3, "name": "rock", "filepath": "../assets/rock.glb"},
+  {"id": 4, "name": "tall house", "filepath": "../assets/tall.glb"},
+  {"id": 5, "name": "shoe house", "filepath": "../assets/shoe.glb"},
+  {"id": 6, "name": "shoe box house", "filepath": "../assets/shoe_box.glb"}
 ]

@@ -8,14 +8,16 @@
         "assetId": 2,
         "probability": 0.8,
         "footprint": 2,
-        "allowOffset": 0.5
+        "allowOffset": 0.5,
+        "allowScale": 0.3
       },
       {
         "assetId": 3,
         "probability": 0.2,
         "footprint": 0.5,
         "allowRotation": 6.28318,
-        "allowOffset": 2
+        "allowOffset": 2,
+        "allowScale": 0.3
       }
     ]
   },
@@ -23,14 +25,54 @@
   {
     "name": "houses",
     "priority": 2,
-    "footprint": 5,
+    "footprint": 8,
     "data": [
       {
         "assetId": 1,
-        "probability": 0.8,
+        "probability": 0.4,
         "footprint": 5,
         "allowOffset": 0.05,
-        "allowRotation": 3.14159,
+        "allowRotation": 6.28318,
+        "allowScale": 0.2
+      },
+      {
+        "assetId": 2,
+        "probability": 0.05,
+        "footprint": 2,
+        "allowOffset": 0.5,
+        "allowRotation": 6.28318,
+        "allowScale": 0.3
+      },
+      {
+        "assetId": 3,
+        "probability": 0.05,
+        "footprint": 0.5,
+        "allowRotation": 6.28318,
+        "allowOffset": 2,
+        "allowScale": 0.3
+      },
+      {
+        "assetId": 4,
+        "probability": 0.1,
+        "footprint": 5,
+        "allowOffset": 0.05,
+        "allowRotation": 6.28318,
+        "allowScale": 0.2
+      },
+      {
+        "assetId": 5,
+        "probability": 0.2,
+        "footprint": 5,
+        "allowOffset": 0.05,
+        "allowRotation": 6.28318,
+        "allowScale": 0
+      },
+      {
+        "assetId": 6,
+        "probability": 0.2,
+        "footprint": 5,
+        "allowOffset": 0.05,
+        "allowRotation": 6.28318,
         "allowScale": 0.2
       }
     ]

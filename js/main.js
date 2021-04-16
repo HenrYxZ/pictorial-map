@@ -71,6 +71,7 @@ async function addSurface(groundColor, mapName, scene) {
     side: THREE.DoubleSide
   });
   const mesh = new THREE.Mesh(geom, material);
+  mesh.receiveShadow = true;
   scene.add(mesh);
 }
 
