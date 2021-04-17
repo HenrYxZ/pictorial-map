@@ -67,24 +67,20 @@ def create_ground(height_map, max_height, pixel_size=HEIGHT_MAP_PIXEL_SIZE):
              ---|---|---           tr2 = v0, v3, v1
                 |   |  
             """
-            y0 = height_map[j + 1][i] * max_height
-            y1 = height_map[j][i + 1] * max_height
-            y2 = height_map[j][i] * max_height
-            y3 = height_map[j + 1][i + 1] * max_height
+            y0 = np.round(height_map[j + 1][i] * max_height, ROUND_DECIMALS)
+            y1 = np.round(height_map[j][i + 1] * max_height, ROUND_DECIMALS)
+            y2 = np.round(height_map[j][i] * max_height, ROUND_DECIMALS)
+            y3 = np.round(height_map[j + 1][i + 1] * max_height, ROUND_DECIMALS)
             # Create vertices of two triangles
-            v0 = Point(x0, y0, z1)
-            v1 = Point(x1, y1, z0)
-            v2 = Point(x0, y2, z0)
-            v3 = Point(x1, y3, z1)
             ground.append({
-                'v0': v0.to_dict(),
-                'v1': v1.to_dict(),
-                'v2': v2.to_dict()
+                'v0': [x0, y0, z1],
+                'v1': [x1, y1, z0],
+                'v2': [x0, y2, z0]
             })
             ground.append({
-                'v0': v0.to_dict(),
-                'v1': v3.to_dict(),
-                'v2': v1.to_dict()
+                'v0': [x0, y0, z1],
+                'v1': [x1, y1, z0],
+                'v2': [x1, y3, z1]
             })
     return ground
 

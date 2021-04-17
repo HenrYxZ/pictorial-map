@@ -38,29 +38,4 @@ export class Placer {
       }
     );
   }
-
-  // loadSquareHouse() {
-  //   loadObject(
-  //     "square house", 'assets/square.glb', child => this.squareHouse = child
-  //   );
-  // }
-
-  // Read a black and white image and place in the map where the pixel is white
-  // procedurallyPlace(placementMap, rows, columns) {
-  //   const Z_POSITION = 0;
-  //   const footprint = 5;
-  //   for (let j = 0; j < rows; j++) {
-  //     for (let i = 0; i < columns; i++) {
-  //       // Only get red channel value
-  //       let pixelValue = placementMap.getImageData(i, j, 1, 1)[0];
-  //       if (pixelValue > 0) {
-  //         let newHouse = this.squareHouse.clone();
-  //         let x = (i - rows / 2) * footprint;
-  //         let y = (j - columns / 2) * footprint;
-  //         newHouse.position.set(x, y, Z_POSITION);
-  //         this.scene.add(newHouse);
-  //       }
-  //     }
-  //   }
-  // }
 }

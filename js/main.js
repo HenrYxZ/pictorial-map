@@ -37,15 +37,10 @@ async function loadAssets() {
   return assets;
 }
 
-function pointToVector(point) {
-  const v = new THREE.Vector3(point.x, point.y, point.z);
-  return v;
-}
-
 function pushPoint(point, arrayList) {
-  arrayList.push(point.x);
-  arrayList.push(point.y);
-  arrayList.push(point.z);
+  arrayList.push(point[0]);
+  arrayList.push(point[1]);
+  arrayList.push(point[2]);
 }
 
 function pushTriangle(triangle, arrayList) {
