@@ -1,5 +1,7 @@
 from PIL import Image
 import numpy as np
+import os
+import os.path
 import time
 
 
@@ -100,6 +102,17 @@ def menu_str(options):
     for opt_num, opt in enumerate(options, start=1):
         s += f"[{opt_num}] for {opt}\n"
     return s
+
+
+def exist_or_create(dir_path):
+    """
+    Check if the given directory path exist, if not creates it
+
+    Args:
+        dir_path(string): The path for the directory
+    """
+    if not os.path.exists(dir_path):
+        os.mkdir(dir_path)
 
 
 class Timer:

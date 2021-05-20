@@ -1,5 +1,5 @@
 import numpy as np
-from PIL import Image, ImageFilter, ImageOps
+from PIL import Image, ImageFilter
 
 
 MAX_COLOR = 255
@@ -50,11 +50,9 @@ def create_dist_map(road_map):
             final_arr[row][col] = max(
                 final_arr[row][col], colored_arr[row][col]
             )
-        # colored_img = Image.fromarray(colored_arr)
-        # final_img = max(final_img, colored_img)
-    final_img = Image.fromarray(final_arr)
-    final_img = ImageOps.invert(final_img)
-    return final_img
+    # Invert the colors
+    final_arr = MAX_COLOR - final_arr
+    return final_arr
 
 
 def create_from_kernel(img, kernel):
@@ -63,22 +61,39 @@ def create_from_kernel(img, kernel):
     return new_arr
 
 
-def test_img():
-    road_map = Image.open('assets/shechem/roads.png').convert('L')
-    dist_map = create_dist_map(road_map)
-    dist_map.save('dist_map.png')
-    # create dx & dy
-    dx = create_from_kernel(dist_map, DX)
-    dy = create_from_kernel(dist_map, DY)
-    # create orient map
-    h, w = dist_map.size
+def create_orient_map(dist_map):
+    """
+    Create a numpy array where each element is a RGB pixel. R means
+    difference in x, G means difference in y and B is irrelevant.
+
+    Args:
+        dist_map(ndarray): 2D array where each element is the distance to the
+            nearest road.
+    Returns:
+         ndarray: The orient map with dx in R, dy in G and MAX_COLOR // 2 in B
+    """
+    h, w = dist_map.shape
     orient_map = np.zeros([h, w, RGB_CHANNELS], dtype=np.uint8)
+    # create dx & dy
+    dist_map_img = Image.fromarray(dist_map)
+    dx = create_from_kernel(dist_map_img, DX)
+    dy = create_from_kernel(dist_map_img, DY)
     for i in range(h * w):
         row = i // w
         col = i - row * w
         orient_map[row][col][0] = dx[row][col]
         orient_map[row][col][1] = dy[row][col]
         orient_map[row][col][2] = MAX_COLOR // 2
+    return orient_map
+
+
+def test_img():
+    road_map = Image.open('assets/shechem/road_map.png').convert('L')
+    dist_map = create_dist_map(road_map)
+    dist_map_img = Image.fromarray(dist_map)
+    dist_map_img.save('dist_map.png')
+    # create orient map
+    orient_map = create_orient_map(dist_map)
     orient_map_img = Image.fromarray(orient_map)
     orient_map_img.save('orient_map.png')
 
