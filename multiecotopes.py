@@ -6,6 +6,7 @@ from PIL import Image
 # Local modules
 import dithering
 import roads
+from utils import COLOR_CHANNELS
 from utils import Point
 import utils
 
@@ -24,6 +25,10 @@ ORIENT_MAP_FILENAME = "orient_map.png"
 SURFACE_FILENAME = "surface.json"
 PLACEMENT_FILENAME = "placement.json"
 ECOTOPES_FILENAME = "ecotopes.json"
+# Textures
+GROUND_TEXTURE = "ground.png"    # colors for the ground triangles
+SURFACE_TEXTURE = "surface.png"  # colors for surface triangle, counting roads
+
 MAX_COLOR = 255
 MAX_QUALITY = 95
 ROUND_DECIMALS = 3
@@ -44,54 +49,85 @@ PIXEL_SIZE = 8
 # Each pixel in height map will represent 1 mt^2
 HEIGHT_MAP_PIXEL_SIZE = 1
 rng = np.random.default_rng()
-cities = ["Shechem", "Jerusalem"]
+cities = [
+    {
+        "name": "Shechem",
+        "colors": {"roads": [120, 53, 45], "ground": [161, 153, 95]}
+    },
+    {
+        "name": "Jerusalem",
+        "colors": {"roads": [89, 70, 75], "ground": [161, 153, 148]}
+    }
+]
 chosen_option = "shechem"
 
 
-def create_ground(height_map, max_height, pixel_size=HEIGHT_MAP_PIXEL_SIZE):
+def paint_surface(road_map, option):
+    """
+    Create a texture for the surface (road + ground)
+    Args:
+        road_map(2darray): Map where each pixel represents the density of road
+        option(int): Option of the chosen city
+    Returns:
+        2darray: Texture with the colors for the surface
+    """
+    h, w = road_map.shape
+    surface_texture = np.zeros([h, w, COLOR_CHANNELS], dtype=np.uint8)
+    ground_texture_filename = f"assets/{chosen_option}/{GROUND_TEXTURE}"
+    road_color = np.array(cities[option].get('colors').get('roads'))
+    # Each pixel color will take the color for the road in road pixels and the
+    # color for the ground in the rest
+    if os.path.exists(ground_texture_filename):
+        ground_img = Image.open(ground_texture_filename)
+        ground_texture = np.asarray(ground_img)
+        for j in range(h):
+            for i in range(w):
+                # Ground texture will need to match shape of road map
+                ground_color = ground_texture[j][i]
+                road_weight = road_map[j][i] / MAX_COLOR
+                surface_texture[j][i] = (
+                    road_weight * road_color + (1 - road_weight) * ground_color
+                )
+        return surface_texture
+    else:
+        ground_color = np.array(cities[option].get('colors').get('ground'))
+        for j in range(h):
+            for i in range(w):
+                road_weight = road_map[j][i] / MAX_COLOR
+                surface_texture[j][i] = (
+                    road_weight * road_color + (1 - road_weight) * ground_color
+                )
+        return surface_texture
+
+
+def create_surface(
+    height_map,
+    surface_texture,
+    max_height=DEFAULT_MAX_HEIGHT,
+    pixel_size=HEIGHT_MAP_PIXEL_SIZE
+):
     """
     Gets a height_map that is a 2D array of floats from 0 to 1 and creates a
-    JSON with two triangles for each pixel
+    JSON that has height map and a surface texture as a 2D array
     Args:
         height_map(2darray): Map where each pixel represents a height
-        max_height(float): Maximum height for a vertex
+        surface_texture(2darray): Texture where each pixel is the color of
+            the surface
+        max_height(float): Maximum height for all vertices
         pixel_size(float): Length of a side of a pixel in the height map
     Returns:
-        dict: An array of triangles
+        dict: A JSON with the necessary info for creating the surface of the map
     """
-    print("Creating surface from height map...")
-    ground = []
-    h, w = height_map.shape
-    # Iterate through pixels creating two triangles on each
-    for j in range(h - 1):
-        for i in range(w - 1):
-            x0 = (i - w / 2) * pixel_size
-            x1 = x0 + pixel_size
-            z0 = (j - h / 2) * pixel_size
-            z1 = z0 + pixel_size
-            """
-                |v2 |v1
-             ---|---|---           tr1 = v0, v1, v2
-                |v0 |v3
-             ---|---|---           tr2 = v0, v3, v1
-                |   |  
-            """
-            y0 = np.round(height_map[j + 1][i] * max_height, ROUND_DECIMALS)
-            y1 = np.round(height_map[j][i + 1] * max_height, ROUND_DECIMALS)
-            y2 = np.round(height_map[j][i] * max_height, ROUND_DECIMALS)
-            y3 = np.round(height_map[j + 1][i + 1] * max_height, ROUND_DECIMALS)
-            # Create vertices of two triangles
-            ground.append({
-                'v0': [x0, y0, z1],
-                'v1': [x1, y1, z0],
-                'v2': [x0, y2, z0]
-            })
-            ground.append({
-                'v0': [x0, y0, z1],
-                'v1': [x1, y1, z0],
-                'v2': [x1, y3, z1]
-            })
-    return ground
+    height, width = height_map.shape
+    surface_object = {
+        "heightMap": height_map.tolist(),
+        "surfaceTex": surface_texture.tolist(),
+        "maxHeight": max_height,
+        "pixelSize": pixel_size,
+        "height": height,
+        "width": width
+    }
+    return surface_object
 
 
 def discretize_density(density_map, ecotope_name):
@@ -102,7 +138,6 @@ def discretize_density(density_map, ecotope_name):
     #     "[2] for Ordered Dithering\n"
     #     "[0] to quit\n"
     # )
-    # TODO: Hardcoded dithering option for now
     opt = '1'
     if opt == '0':
         quit()
@@ -203,9 +238,8 @@ def procedurally_place(
 def main():
     global chosen_option
     # option = int(input(utils.menu_str(cities))) - 1
-    # TODO: Hardcoded option to schehem for now
     option = 0
-    chosen_option = cities[option].lower()
+    chosen_option = cities[option]["name"].lower()
 
     # Load road map
     road_map_path = f"assets/{chosen_option}/{ROAD_MAP_FILENAME}"
@@ -230,7 +264,7 @@ def main():
         print(f"Height map {height_map_path} not found")
     img = Image.open(height_map_path)
     height_map_img = img.convert('L')
-    height_map = np.array(height_map_img, dtype=float) / MAX_COLOR
+    height_map = np.array(height_map_img, dtype=np.uint8)
     max_height = DEFAULT_MAX_HEIGHT
     # Create a resized height map to use for placement
     new_size = (DENSITY_MAP_SIZE, DENSITY_MAP_SIZE)
@@ -251,6 +285,8 @@ def main():
     if road_map is not None:
         road_map_arr = np.asarray(road_map, dtype=float) / MAX_COLOR
         combined_density_map = road_map_arr
+    else:
+        road_map_arr = np.zeros([DENSITY_MAP_SIZE, DENSITY_MAP_SIZE])
     # Combine ecotopes iterating them by hierarchy level
     for ecotope in ecotopes:
         ecotope_name = ecotope['name']
@@ -271,12 +307,13 @@ def main():
         placement_json += procedurally_place(
             placement_map, ecotope, resized_height_map, max_height, orient_map
         )
-    # Create surface triangles from height map
-    height_map_json = create_ground(height_map, max_height)
+    # Create surface JSON from height map
+    surface_texture = paint_surface(road_map_arr, option)
+    surface_json = create_surface(height_map, surface_texture)
     # Store triangles into surface JSON
     surface_path = f"assets/{chosen_option}/{SURFACE_FILENAME}"
     with open(surface_path, 'w') as f:
-        json.dump(height_map_json, f, indent=JSON_INDENT)
+        json.dump(surface_json, f, indent=JSON_INDENT)
     print(f"Finished writing surface json file in {surface_path}")
     # Save placement array in JSON
     placement_path = f"assets/{chosen_option}/{PLACEMENT_FILENAME}"

@@ -3,7 +3,7 @@ import {GLTFLoader} from 'https://threejsfundamentals.org/threejs/resources/thre
 const RBGA_CHANNELS = 4;
 
 
-export class Placer {
+export default class Placer {
   constructor(scene, assets) {
     this.scene = scene;
     this.assets = assets;

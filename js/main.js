@@ -1,7 +1,8 @@
 import * as THREE from 'https://threejsfundamentals.org/threejs/resources/threejs/r125/build/three.module.js';
 import {OrbitControls} from 'https://threejsfundamentals.org/threejs/resources/threejs/r125/examples/jsm/controls/OrbitControls.js';
 import {GLTFLoader} from 'https://threejsfundamentals.org/threejs/resources/threejs/r125/examples/jsm/loaders/GLTFLoader.js';
-import {Placer} from './placement.js';
+import Placer from './placement.js';
+import addSurface from './surface.js';
 
 const gltfLoader = new GLTFLoader();
 const GROUND_COLOR = new THREE.Color('rgb(161, 153, 95)');
@@ -37,38 +38,6 @@ async function loadAssets() {
   return assets;
 }
 
-function pushPoint(point, arrayList) {
-  arrayList.push(point[0]);
-  arrayList.push(point[1]);
-  arrayList.push(point[2]);
-}
-
-function pushTriangle(triangle, arrayList) {
-  pushPoint(triangle.v0, arrayList);
-  pushPoint(triangle.v1, arrayList);
-  pushPoint(triangle.v2, arrayList);
-}
-
-async function addSurface(groundColor, mapName, scene) {
-  const response = await fetch('../assets/' + mapName + '/surface.json');
-  const surface = await response.json();
-  const geom = new THREE.BufferGeometry();
-  const arrayList = [];
-  for (let i = 0; i < surface.length; i++) {
-    const triangle = surface[i];
-    pushTriangle(triangle, arrayList);
-  }
-  const vertices = new Float32Array(arrayList);
-  geom.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
-  geom.computeVertexNormals();
-  const material = new THREE.MeshPhongMaterial({
-    color: groundColor,
-    side: THREE.DoubleSide
-  });
-  const mesh = new THREE.Mesh(geom, material);
-  mesh.receiveShadow = true;
-  scene.add(mesh);
-}
 
 export async function main(groundColor, mapName) {
   const canvas = document.querySelector('#c');
@@ -98,7 +67,7 @@ export async function main(groundColor, mapName) {
   scene.background = new THREE.Color('black');
 
   // Add Surface
-  await addSurface(groundColor, mapName, scene);
+  await addSurface(mapName, scene);
 
   // Add directional light
   const color = 0xFFFFFF;

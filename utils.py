@@ -4,7 +4,7 @@ import os
 import os.path
 import time
 
-
+COLOR_CHANNELS = 3
 MAX_COLOR = 255
 
 
@@ -42,9 +42,9 @@ def distance(p1, p2):
 
 
 def humanize_time(secs):
-    mins, secs = divmod(secs, 60)
-    hours, mins = divmod(mins, 60)
-    return '%02d:%02d:%02d' % (hours, mins, secs)
+    minutes, secs = divmod(secs, 60)
+    hours, minutes = divmod(minutes, 60)
+    return '%02d:%02d:%02d' % (hours, minutes, secs)
 
 
 def degrees2radians(degrees):
