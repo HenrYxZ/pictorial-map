@@ -27,7 +27,7 @@ export default class Placer {
     );
     // Add to scene
     this.scene.add(newObject);
-    console.log("Placed object with id: " + sceneObject.assetId)
+    // console.log("Placed object with id: " + sceneObject.assetId)
   }
 
   usePlacement(placement) {
