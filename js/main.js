@@ -39,7 +39,7 @@ async function loadAssets() {
 }
 
 
-export async function main(groundColor, mapName) {
+export async function main(mapName) {
   const canvas = document.querySelector('#c');
   const renderer = new THREE.WebGLRenderer({canvas, antialias: true});
   renderer.shadowMap.enabled = true;

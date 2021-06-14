@@ -1,5 +1,5 @@
 import * as THREE from 'https://threejsfundamentals.org/threejs/resources/threejs/r125/build/three.module.js';
-const GROUND_COLOR = new THREE.Color('rgb(161, 153, 95)');
+
 const MAX_COLOR = 255;
 
 
@@ -48,8 +48,8 @@ function getVerticesUVs(height, width, i, j) {
   // ---|---|---           tr2 = v0, v3, v1
   //    |   |
   // It might be more efficient to use indices instead of repeating uvs
-  const u = j / width;
-  const v = (height - i) / height;
+  const u = i / width;
+  const v = (height - j) / height;
   const horizontalDiff = 1 / width;
   const verticalDiff = 1 / height;
 

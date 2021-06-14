@@ -52,7 +52,7 @@ rng = np.random.default_rng()
 cities = [
     {
         "name": "Shechem",
-        "colors": {"roads": [120, 53, 45], "ground": [161, 153, 95]}
+        "colors": {"roads": [105, 96, 70], "ground": [161, 153, 95]}
     },
     {
         "name": "Jerusalem",
