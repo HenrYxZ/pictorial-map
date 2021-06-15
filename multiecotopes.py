@@ -170,9 +170,9 @@ def place_asset(asset, i, j, w, h, footprint, height=0, orient=None):
         rotation = rng.random() * asset['allowRotation']
     else:
         if orient is not None:
-            orient_unit_vector = utils.normalize(
-                np.array([orient[0], orient[1]])
-            )
+            dx = (orient[0] - MAX_COLOR // 2) * 2
+            dy = (orient[1] - MAX_COLOR // 2) * 2
+            orient_unit_vector = utils.normalize([dx, dy])
             # Get the angle of rotation in the Z axis
             rotation = np.arccos(orient_unit_vector[0])
             if orient[1] < 0:
@@ -199,7 +199,7 @@ def place_asset(asset, i, j, w, h, footprint, height=0, orient=None):
 
 
 def procedurally_place(
-        placement_map, ecotope, height_map, max_height, orient_map=None
+    placement_map, ecotope, height_map, max_height, orient_map=None
 ):
     ratio = int(PIXEL_SIZE // ecotope['footprint'])
     if ratio > 1:
@@ -239,23 +239,27 @@ def main():
     option = 0
     chosen_option = cities[option]["name"].lower()
 
+    timer = utils.Timer()
+    timer.start()
     # Load road map
     road_map_path = f"assets/{chosen_option}/{ROAD_MAP_FILENAME}"
+    new_size = (DENSITY_MAP_SIZE, DENSITY_MAP_SIZE)
     if not os.path.isfile(road_map_path):
         road_map = None
-        orient_map = None
+        resized_orient_map = None
     else:
         utils.exist_or_create(f'{DEBUG_DIR}')
         utils.exist_or_create(f'{DEBUG_DIR}/{chosen_option}')
         road_map = Image.open(road_map_path).convert('L')
         dist_map = roads.create_dist_map(road_map)
         dist_map_img = Image.fromarray(dist_map)
-        dist_map_img.save(f'debug/{chosen_option}/{DIST_MAP_FILENAME}')
+        dist_map_img.save(f'{DEBUG_DIR}/{chosen_option}/{DIST_MAP_FILENAME}')
         orient_map = roads.create_orient_map(dist_map)
         orient_map_img = Image.fromarray(orient_map)
         orient_map_img.save(
             f'{DEBUG_DIR}/{chosen_option}/{ORIENT_MAP_FILENAME}'
         )
+        resized_orient_map = np.asarray(orient_map_img.resize(new_size))
     # Load height map
     height_map_path = f"assets/{chosen_option}/{HEIGHT_MAP_FILENAME}"
     if not os.path.isfile(height_map_path):
@@ -265,7 +269,7 @@ def main():
     height_map = np.array(height_map_img, dtype=np.uint8)
     max_height = DEFAULT_MAX_HEIGHT
     # Create a resized height map to use for placement
-    new_size = (DENSITY_MAP_SIZE, DENSITY_MAP_SIZE)
+
     resized_height_map_img = height_map_img.resize(new_size)
     resized_height_map = (
         np.array(resized_height_map_img, dtype=float) / MAX_COLOR
@@ -281,7 +285,8 @@ def main():
     ones = np.ones([DENSITY_MAP_SIZE, DENSITY_MAP_SIZE])
     # Combine road maps so density maps don't use that part
     if road_map is not None:
-        road_map_arr = np.asarray(road_map, dtype=float) / MAX_COLOR
+        resized_road_map = road_map.resize(new_size)
+        road_map_arr = np.asarray(resized_road_map, dtype=float) / MAX_COLOR
         combined_density_map = road_map_arr
     else:
         road_map_arr = np.zeros([DENSITY_MAP_SIZE, DENSITY_MAP_SIZE])
@@ -303,7 +308,8 @@ def main():
         placement_map = discretize_density(density_map, ecotope_name)
         # Procedurally place
         placement_json += procedurally_place(
-            placement_map, ecotope, resized_height_map, max_height, orient_map
+            placement_map, ecotope, resized_height_map, max_height,
+            resized_orient_map
         )
     # Create the texture for the surface
     surface_texture = paint_surface(road_map_arr, option)
@@ -323,6 +329,8 @@ def main():
     with open(placement_path, 'w') as f:
         json.dump(placement_json, f, indent=JSON_INDENT)
     print(f"Finished writing placement json file in {placement_path}")
+    timer.stop()
+    print(f"Elapsed time in the program was {timer}")
 
 
 if __name__ == '__main__':

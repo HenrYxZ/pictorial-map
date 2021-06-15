@@ -3,17 +3,32 @@ from PIL import Image, ImageFilter
 
 
 MAX_COLOR = 255
+# DX = [
+#     0, 0, 0,
+#     -1, 0, 1,
+#     0, 0, 0
+# ]
+# DY = [
+#     0, 1, 0,
+#     0, 0, 0,
+#     0, -1, 0
+# ]
 DX = [
-    0, 0, 0,
-    -1, 0, 1,
-    0, 0, 0
+    0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0,
+    -1, 0, 0, 0, 1,
+    0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0
 ]
 DY = [
-    0, 1, 0,
-    0, 0, 0,
-    0, -1, 0
+    0, 0, 1, 0, 0,
+    0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0,
+    0, 0, -1, 0, 0
 ]
-DEFAULT_KERNEL_SIZE = (3, 3)
+DEFAULT_KERNEL_SIZE = (5, 5)
+DEFAULT_COMPARISON_DISTANCE = 5
 RGB_CHANNELS = 3
 
 
@@ -61,6 +76,46 @@ def create_from_kernel(img, kernel):
     return new_arr
 
 
+def create_derivative(
+        img_arr, get_previous, get_next, distance=DEFAULT_COMPARISON_DISTANCE
+):
+    """
+    Create a derivative array from an image
+    Args:
+        img_arr(ndarray): Input image array
+        get_previous(function): Function to obtain the previous pixel in the
+            form f(img, i, j)
+        get_next(function): Function to obtain the next pixel in the
+            form f(img, i, j)
+    Returns:
+         ndarray: An image array with the derivative
+    """
+    h, w = img_arr.shape
+    derivative = np.zeros([h, w])
+    for count in range(h * w):
+        i = count % (w - distance)
+        j = (count // w) % (h - distance)
+        previous_pixel = get_previous(img_arr, i, j, distance)
+        next_pixel = get_next(img_arr, i, j, distance)
+        difference = next_pixel - previous_pixel
+        derivative[j][i] = difference / 2 + MAX_COLOR / 2
+    return derivative
+
+
+def create_dx(img_arr):
+    def get_previous(x, i, j, distance): return x[j][i - distance // 2]
+    def get_next(x, i, j, distance): return x[j][i + distance // 2]
+    dx = create_derivative(img_arr, get_previous, get_next)
+    return dx
+
+
+def create_dy(img_arr):
+    def get_previous(x, i, j, distance): return x[j - distance // 2][i]
+    def get_next(x, i, j, distance): return x[j + distance // 2][i]
+    dy = create_derivative(img_arr, get_previous, get_next)
+    return dy
+
+
 def create_orient_map(dist_map):
     """
     Create a numpy array where each element is a RGB pixel. R means
@@ -76,14 +131,19 @@ def create_orient_map(dist_map):
     orient_map = np.zeros([h, w, RGB_CHANNELS], dtype=np.uint8)
     # create dx & dy
     dist_map_img = Image.fromarray(dist_map)
-    dx = create_from_kernel(dist_map_img, DX)
-    dy = create_from_kernel(dist_map_img, DY)
+    dist_map = np.asarray(dist_map_img)
+    dx = create_dx(dist_map)
+    dy = create_dy(dist_map)
+    dx_img = Image.fromarray(np.array(dx, dtype=np.uint8))
+    dy_img = Image.fromarray(np.array(dy, dtype=np.uint8))
+    dx_img.save('debug/shechem/dx.png')
+    dy_img.save('debug/shechem/dy.png')
     for i in range(h * w):
         row = i // w
         col = i - row * w
         orient_map[row][col][0] = dx[row][col]
         orient_map[row][col][1] = dy[row][col]
-        orient_map[row][col][2] = MAX_COLOR // 2
+        orient_map[row][col][2] = 0
     return orient_map
 
 
