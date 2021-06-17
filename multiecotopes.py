@@ -180,7 +180,7 @@ def place_asset(asset, i, j, w, h, footprint, height=0, orient=None):
         else:
             rotation = 0
     if 'allowScale' in asset:
-        scale_offset = rng.random(3) * asset['allowScale']
+        scale_offset = (rng.random() - 0.5) * asset['allowScale'] * np.ones(3)
     else:
         scale_offset = np.zeros(3)
     x = (i - w / 2 + 0.5 + position_offset[0]) * footprint
