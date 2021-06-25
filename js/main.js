@@ -10,6 +10,7 @@ const MAP_WIDTH = 320;
 const MAP_HEIGHT = 320;
 const SHADOW_MAP_SIZE = 8192;
 
+
 async function asyncLoad(filepath) {
   return new Promise(
     (resolve, reject) => {
@@ -39,22 +40,33 @@ async function loadAssets() {
 }
 
 
-export async function main(mapName) {
+export async function main(mapName, skyTexture) {
   const canvas = document.querySelector('#c');
-  const renderer = new THREE.WebGLRenderer({canvas, antialias: true});
+  const renderer = new THREE.WebGLRenderer({
+    canvas, antialias: true, alpha: true
+  });
   renderer.shadowMap.enabled = true;
   // to antialias the shadow
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  // renderer.autoClear = false;
+  const width = canvas.clientWidth;
+  const height = canvas.clientHeight;
+  const aspectRatio = width / height;
+  // const skyCam = new THREE.PerspectiveCamera(30, width / height, 1000, 10000);
 
 
   // Set Camera
-  const size = 1;
+  const size = 150;
   const near = 0.00001;
   const far = 10000;
   const camera = new THREE.OrthographicCamera(
-    -size, size, size, -size, near, far
+    -size * aspectRatio / 2,
+    size * aspectRatio / 2,
+    size / 2,
+    -size / 2,
+    near,
+    far
   );
-  camera.zoom = 0.1;
   camera.position.set(MAP_WIDTH, MAP_HEIGHT, MAP_HEIGHT);
 
   // Set Controls
@@ -65,6 +77,15 @@ export async function main(mapName) {
   // Set Scene
   const scene = new THREE.Scene();
   scene.background = new THREE.Color('black');
+  // scene.background = null;
+  // const skyScene = new THREE.Scene();
+  // skyScene.background = skyTexture;
+  // Add Sky Sphere
+  const skyMat = new THREE.MeshPhongMaterial({map: skyTexture});
+  skyMat.side = THREE.DoubleSide;
+  const skyGeo = new THREE.SphereGeometry(10000, 25, 25);
+  const sky = new THREE.Mesh(skyGeo, skyMat);
+  scene.add(sky);
 
   // Add Surface
   await addSurface(mapName, scene);
@@ -146,11 +167,16 @@ export async function main(mapName) {
     const aspect = setScissorForElement(canvas);
 
     // update the camera for this aspect
-    camera.left = -aspect;
-    camera.right = aspect;
+    camera.left = -aspect * size / 2;
+    camera.right = aspect * size / 2;
     camera.updateProjectionMatrix();
 
-    scene.background.set(0x000000);
+    // skyCam.position.copy(camera.position);
+    // skyCam.lookAt(0, 0, 0);
+
+    // renderer.clear();
+    // renderer.render(skyScene, skyCam);
+    // renderer.render(scene, skyCam);
     renderer.render(scene, camera);
 
     requestAnimationFrame(render);

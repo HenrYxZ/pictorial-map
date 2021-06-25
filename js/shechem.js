@@ -2,5 +2,13 @@ import * as THREE from 'https://threejsfundamentals.org/threejs/resources/threej
 import {main} from './main.js';
 
 const mapName = 'shechem';
-
-main(mapName).catch(error => console.error(error));
+// Add Sky
+const textureLoader = new THREE.TextureLoader();
+const texture = textureLoader.load(
+  '../assets/sky.png',
+  texture => {
+    texture.encoding = THREE.sRGBEncoding;
+		// texture.mapping = THREE.EquirectangularReflectionMapping;
+    main(mapName, texture).catch(error => console.error(error));
+  }
+);

@@ -38,6 +38,23 @@ def dilate(img):
     return dilated
 
 
+def high_pass(arr, num):
+    """
+    Create a new 2D array iterating the input and for each element if it is
+    non-zero it will be num, else 0.
+    Args:
+        arr(ndarray): Input array
+        num(int): Number to leave in each cell after that passes the
+            high pass.
+    Returns:
+        list: 2D array with a high pass filter
+    """
+    new_arr = [
+        [num if arr[row][col] else 0 for col in row] for row in arr
+    ]
+    return new_arr
+
+
 def create_dist_map(road_map):
     """
     Create a map where each pixel is the distance to the nearest road, up to 255
@@ -51,6 +68,8 @@ def create_dist_map(road_map):
     # Iterate on possible colors.
     # final_img = road_map
     final_arr = np.array(road_map, dtype=np.uint8)
+    # transform array to binary
+    final_arr = np.array(high_pass(final_arr, MAX_COLOR), dtype=np.uint8)
     w, h = final_arr.shape
     current_img = road_map
     for current_color in range(MAX_COLOR - 1, 1, -1):
@@ -87,6 +106,7 @@ def create_derivative(
             form f(img, i, j)
         get_next(function): Function to obtain the next pixel in the
             form f(img, i, j)
+        distance(int): Distance in pixels between the previous and the next
     Returns:
          ndarray: An image array with the derivative
     """
