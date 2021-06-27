@@ -115,6 +115,26 @@ def exist_or_create(dir_path):
         os.mkdir(dir_path)
 
 
+def create_texture_from_noise(color, noise_img_path, noise_weight=0.2):
+    """
+    Create a 2D image texture by multiplying a given color with a grayscale
+    noise.
+    Args:
+        color(ndarray): RGB color
+        noise_img(Image): Noise image
+
+    Returns:
+        Image: 2D image texture
+    """
+    noise_img = Image.open(noise_img_path)
+    noise_arr = np.asarray(noise_img) / MAX_COLOR
+    output_arr = np.array(
+        (1 - noise_arr * noise_weight) * color, dtype=np.uint8
+    )
+    output_img = Image.fromarray(output_arr)
+    return output_img
+
+
 class Timer:
     def __init__(self):
         self.start_time = 0

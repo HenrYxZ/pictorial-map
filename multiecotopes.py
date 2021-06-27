@@ -62,17 +62,18 @@ cities = [
 chosen_option = "shechem"
 
 
-def get_ground_texture(ground_texture_filename):
+def get_ground_texture(ground_texture_filename, h, w):
     if os.path.exists(ground_texture_filename):
         ground_img = Image.open(ground_texture_filename)
-        ground_texture = np.asarray(ground_img)
+        resized_ground_img = ground_img.resize([h, w])
+        ground_texture = np.asarray(resized_ground_img)
         return ground_texture
     else:
         return None
 
 
 def get_ground_color_at(ground_texture, i, j, option):
-    if ground_texture:
+    if ground_texture is not None:
         ground_color = ground_texture[j][i]
     else:
         ground_color = np.array(cities[option].get('colors').get('ground'))
@@ -83,24 +84,24 @@ def paint_surface(road_map, option):
     """
     Create a texture for the surface (road + ground)
     Args:
-        road_map(2darray): Map where each pixel represents the density of road
-            (values are 0-1 floats)
+        road_map(Image): Map where each pixel represents the density of road
         option(int): Option of the chosen city
     Returns:
         2darray: Texture with the colors for the surface in uint8
     """
-    h, w = road_map.shape
+    road_map_arr = np.asarray(road_map) / MAX_COLOR
+    h, w = road_map_arr.shape
     surface_texture = np.zeros([h, w, COLOR_CHANNELS], dtype=np.uint8)
     ground_texture_filename = f"assets/{chosen_option}/{GROUND_TEXTURE}"
     road_color = np.array(cities[option].get('colors').get('roads'))
     # Each pixel color will take the color for the road in road pixels and the
     # color for the ground in the rest
-    ground_texture = get_ground_texture(ground_texture_filename)
+    ground_texture = get_ground_texture(ground_texture_filename, h, w)
     for j in range(h):
         for i in range(w):
             # Ground texture will need to match shape of road map
             ground_color = get_ground_color_at(ground_texture, i, j, option)
-            road_weight = road_map[j][i]
+            road_weight = road_map_arr[j][i]
             surface_texture[j][i] = (
                 road_weight * road_color + (1 - road_weight) * ground_color
             )
@@ -288,8 +289,6 @@ def main():
         resized_road_map = road_map.resize(new_size)
         road_map_arr = np.asarray(resized_road_map, dtype=float) / MAX_COLOR
         combined_density_map = road_map_arr
-    else:
-        road_map_arr = np.zeros([DENSITY_MAP_SIZE, DENSITY_MAP_SIZE])
     # Combine ecotopes iterating them by hierarchy level
     for ecotope in ecotopes:
         ecotope_name = ecotope['name']
@@ -312,7 +311,7 @@ def main():
             resized_orient_map
         )
     # Create the texture for the surface
-    surface_texture = paint_surface(road_map_arr, option)
+    surface_texture = paint_surface(road_map, option)
     surface_tex_img = Image.fromarray(surface_texture)
     surface_tex_path = f"assets/{chosen_option}/{SURFACE_TEXTURE}"
     surface_tex_img.save(surface_tex_path)
