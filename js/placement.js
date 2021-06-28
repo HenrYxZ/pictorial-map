@@ -1,6 +1,7 @@
 import * as THREE from 'https://threejsfundamentals.org/threejs/resources/threejs/r125/build/three.module.js';
 import {GLTFLoader} from 'https://threejsfundamentals.org/threejs/resources/threejs/r125/examples/jsm/loaders/GLTFLoader.js';
 const RBGA_CHANNELS = 4;
+const MAX_COLOR_CHANGE = 0.2;
 
 
 export default class Placer {
@@ -22,6 +23,9 @@ export default class Placer {
       child => {
         if (child.isMesh) {
           child.castShadow = true;
+          // const randomColorChange = Math.random() * MAX_COLOR_CHANGE;
+          // child.material.color.multiplyScalar(1 - randomColorChange);
+          // child.material.needsUpdate = true;
         }
       }
     );

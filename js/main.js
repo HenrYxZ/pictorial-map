@@ -5,7 +5,6 @@ import Placer from './placement.js';
 import addSurface from './surface.js';
 
 const gltfLoader = new GLTFLoader();
-const GROUND_COLOR = new THREE.Color('rgb(161, 153, 95)');
 const MAP_WIDTH = 320;
 const MAP_HEIGHT = 320;
 const SHADOW_MAP_SIZE = 8192;
