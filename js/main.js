@@ -42,7 +42,7 @@ async function loadAssets() {
 export async function main(mapName, skyTexture) {
   const canvas = document.querySelector('#c');
   const renderer = new THREE.WebGLRenderer({
-    canvas, antialias: true, alpha: true
+    canvas, antialias: true
   });
   renderer.shadowMap.enabled = true;
   // to antialias the shadow
@@ -80,9 +80,9 @@ export async function main(mapName, skyTexture) {
   // const skyScene = new THREE.Scene();
   // skyScene.background = skyTexture;
   // Add Sky Sphere
-  const skyMat = new THREE.MeshPhongMaterial({map: skyTexture});
+  const skyMat = new THREE.MeshBasicMaterial({map: skyTexture});
   skyMat.side = THREE.DoubleSide;
-  const skyGeo = new THREE.SphereGeometry(10000, 25, 25);
+  const skyGeo = new THREE.SphereGeometry(600, 60, 40);
   const sky = new THREE.Mesh(skyGeo, skyMat);
   scene.add(sky);
 
