@@ -31,14 +31,14 @@
         "assetId": 1,
         "probability": 0.2,
         "footprint": 5,
-        "allowOffset": 0.05,
+        "allowOffset": 0.5,
         "allowScale": 0.2
       },
       {
         "assetId": 7,
         "probability": 0.2,
         "footprint": 5,
-        "allowOffset": 0.05,
+        "allowOffset": 0.5,
         "allowScale": 0.2
       },
       {
@@ -59,42 +59,42 @@
         "assetId": 4,
         "probability": 0.05,
         "footprint": 5,
-        "allowOffset": 0.05,
+        "allowOffset": 0.5,
         "allowScale": 0.2
       },
       {
         "assetId": 8,
         "probability": 0.05,
         "footprint": 5,
-        "allowOffset": 0.05,
+        "allowOffset": 0.5,
         "allowScale": 0.2
       },
       {
         "assetId": 5,
         "probability": 0.1,
         "footprint": 5,
-        "allowOffset": 0.05,
+        "allowOffset": 0.5,
         "allowScale": 0
       },
       {
         "assetId": 9,
         "probability": 0.1,
         "footprint": 5,
-        "allowOffset": 0.05,
+        "allowOffset": 0.5,
         "allowScale": 0
       },
       {
         "assetId": 6,
         "probability": 0.1,
         "footprint": 5,
-        "allowOffset": 0.05,
+        "allowOffset": 0.5,
         "allowScale": 0.2
       },
       {
         "assetId": 10,
         "probability": 0.1,
         "footprint": 5,
-        "allowOffset": 0.05,
+        "allowOffset": 0.5,
         "allowScale": 0.2
       }
     ]

@@ -8,7 +8,7 @@ const texture = textureLoader.load(
   '../assets/horizon.png',
   texture => {
     texture.encoding = THREE.sRGBEncoding;
-		// texture.mapping = THREE.EquirectangularReflectionMapping;
+		texture.mapping = THREE.EquirectangularReflectionMapping;
     main(mapName, texture).catch(error => console.error(error));
   }
 );

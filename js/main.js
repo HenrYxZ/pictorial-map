@@ -41,17 +41,20 @@ async function loadAssets() {
 
 export async function main(mapName, skyTexture) {
   const canvas = document.querySelector('#c');
+  // const renderer = new THREE.WebGLRenderer({
+  //   canvas, antialias: true
+  // });
   const renderer = new THREE.WebGLRenderer({
-    canvas, antialias: true
+    canvas, antialias: true, alpha: true
   });
   renderer.shadowMap.enabled = true;
   // to antialias the shadow
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-  // renderer.autoClear = false;
+  renderer.autoClear = false;
   const width = canvas.clientWidth;
   const height = canvas.clientHeight;
   const aspectRatio = width / height;
-  // const skyCam = new THREE.PerspectiveCamera(30, width / height, 1000, 10000);
+  const skyCam = new THREE.PerspectiveCamera(30, width / height, 1000, 10000);
 
 
   // Set Camera
@@ -75,16 +78,16 @@ export async function main(mapName, skyTexture) {
 
   // Set Scene
   const scene = new THREE.Scene();
-  scene.background = new THREE.Color('black');
-  // scene.background = null;
-  // const skyScene = new THREE.Scene();
-  // skyScene.background = skyTexture;
+  // scene.background = new THREE.Color('black');
+  scene.background = null;
+  const skyScene = new THREE.Scene();
+  skyScene.background = skyTexture;
   // Add Sky Sphere
-  const skyMat = new THREE.MeshBasicMaterial({map: skyTexture});
-  skyMat.side = THREE.DoubleSide;
-  const skyGeo = new THREE.SphereGeometry(600, 60, 40);
-  const sky = new THREE.Mesh(skyGeo, skyMat);
-  scene.add(sky);
+  // const skyMat = new THREE.MeshBasicMaterial({map: skyTexture});
+  // skyMat.side = THREE.DoubleSide;
+  // const skyGeo = new THREE.SphereGeometry(600, 60, 40);
+  // const sky = new THREE.Mesh(skyGeo, skyMat);
+  // scene.add(sky);
 
   // Add Surface
   await addSurface(mapName, scene);
@@ -170,11 +173,11 @@ export async function main(mapName, skyTexture) {
     camera.right = aspect * size / 2;
     camera.updateProjectionMatrix();
 
-    // skyCam.position.copy(camera.position);
-    // skyCam.lookAt(0, 0, 0);
+    skyCam.position.copy(camera.position);
+    skyCam.lookAt(0, 0, 0);
 
-    // renderer.clear();
-    // renderer.render(skyScene, skyCam);
+    renderer.clear();
+    renderer.render(skyScene, skyCam);
     // renderer.render(scene, skyCam);
     renderer.render(scene, camera);
 
