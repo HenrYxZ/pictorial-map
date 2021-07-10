@@ -1,41 +1,9 @@
 import numpy as np
-from PIL import Image, ImageFilter
-
+from PIL import Image
 
 MAX_COLOR = 255
-# DX = [
-#     0, 0, 0,
-#     -1, 0, 1,
-#     0, 0, 0
-# ]
-# DY = [
-#     0, 1, 0,
-#     0, 0, 0,
-#     0, -1, 0
-# ]
-DX = [
-    0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0,
-    -1, 0, 0, 0, 1,
-    0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0
-]
-DY = [
-    0, 0, 1, 0, 0,
-    0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0,
-    0, 0, -1, 0, 0
-]
-DEFAULT_KERNEL_SIZE = (5, 5)
 DEFAULT_COMPARISON_DISTANCE = 5
 RGB_CHANNELS = 3
-
-
-def dilate(img):
-    filter_size = 3
-    dilated = img.filter(ImageFilter.MaxFilter(filter_size))
-    return dilated
 
 
 def high_pass(arr, num):
@@ -55,6 +23,54 @@ def high_pass(arr, num):
     return new_arr
 
 
+def add_neighbors(closed, j, i, open_pixels):
+    h, w = closed.shape
+    rows = [j - 1, j, j + 1]
+    cols = [i - 1, i, i + 1]
+    for row in rows:
+        for col in cols:
+            if 0 <= row < h and 0 <= col < w and not closed[row][col]:
+                closed[row][col] = True
+                open_pixels.append((row, col))
+
+
+def flood(img_arr):
+    """
+    Create an inverted Djikstra map
+    Args:
+        img_arr(ndarray): input image array (binary)
+
+    Returns:
+        ndarray: Image with dilation applied
+    """
+    h, w = img_arr.shape
+    new_arr = MAX_COLOR - img_arr
+    closed = np.zeros([h, w], dtype=bool)
+    road_pixels = []
+    open_pixels = []
+    # First pass: Add roads to closed
+    for counter in range(h * w):
+        i = counter % w
+        j = counter // w
+        if new_arr[j][i] == 0:
+            closed[j][i] = True
+            road_pixels.append((j, i))
+    # Second pass: Add border to open
+    for j, i in road_pixels:
+        add_neighbors(closed, j, i, open_pixels)
+    # Third pass: Iterate until 255 colors adding new boundary each time
+    for color in range(1, MAX_COLOR - 1):
+        next_open = []
+        for j, i in open_pixels:
+            new_arr[j][i] = color
+            add_neighbors(closed, j, i, next_open)
+        open_pixels = next_open
+    # Last pass: Paint last pixels
+    for j, i in open_pixels:
+        new_arr[j][i] = MAX_COLOR - 1
+    return new_arr
+
+
 def create_dist_map(road_map):
     """
     Create a map where each pixel is the distance to the nearest road, up to 255
@@ -65,34 +81,11 @@ def create_dist_map(road_map):
     Returns:
          ndarray: The map with the distances from the roads
     """
-    # Iterate on possible colors.
-    # final_img = road_map
     final_arr = np.array(road_map, dtype=np.uint8)
     # transform array to binary
     final_arr = np.array(high_pass(final_arr, MAX_COLOR), dtype=np.uint8)
-    w, h = final_arr.shape
-    current_img = road_map
-    for current_color in range(MAX_COLOR - 1, 1, -1):
-        dilated_img = dilate(current_img)
-        colored_arr = np.array(
-            np.array(dilated_img) / MAX_COLOR * current_color, dtype=np.uint8
-        )
-        current_img = Image.fromarray(colored_arr)
-        for i in range(w * h):
-            row = i // w
-            col = i - row * w
-            final_arr[row][col] = max(
-                final_arr[row][col], colored_arr[row][col]
-            )
-    # Invert the colors
-    final_arr = MAX_COLOR - final_arr
+    final_arr = flood(final_arr)
     return final_arr
-
-
-def create_from_kernel(img, kernel):
-    new_img = img.filter(ImageFilter.Kernel(DEFAULT_KERNEL_SIZE, kernel))
-    new_arr = np.asarray(new_img)
-    return new_arr
 
 
 def create_derivative(
@@ -130,8 +123,8 @@ def create_dx(img_arr):
 
 
 def create_dy(img_arr):
-    def get_previous(x, i, j, distance): return x[j - distance // 2][i]
-    def get_next(x, i, j, distance): return x[j + distance // 2][i]
+    def get_previous(x, i, j, distance): return x[j + distance // 2][i]
+    def get_next(x, i, j, distance): return x[j - distance // 2][i]
     dy = create_derivative(img_arr, get_previous, get_next)
     return dy
 
@@ -163,7 +156,7 @@ def create_orient_map(dist_map):
         col = i - row * w
         orient_map[row][col][0] = dx[row][col]
         orient_map[row][col][1] = dy[row][col]
-        orient_map[row][col][2] = 0
+        orient_map[row][col][2] = MAX_COLOR
     return orient_map
 
 
