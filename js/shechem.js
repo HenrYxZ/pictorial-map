@@ -5,7 +5,7 @@ const mapName = 'shechem';
 // Add Sky
 const textureLoader = new THREE.TextureLoader();
 const texture = textureLoader.load(
-  '../assets/horizon.png',
+  '../assets/sky.png',
   texture => {
     texture.encoding = THREE.sRGBEncoding;
 		texture.mapping = THREE.EquirectangularReflectionMapping;

@@ -161,35 +161,75 @@ def discretize_density(density_map, ecotope_name):
     return output
 
 
-def place_asset(asset, i, j, w, h, footprint, height=0, orient=None):
+def get_height(x, z, height_map, max_height):
+    """
+    Get the height for an asset to be placed in the map. It uses image
+    interpolation in the height map.
+    Args:
+        x: position of the asset in the x axis
+        z: position of the asset in the x axis
+        height_map: the map with height information as a float 2D array
+        max_height: the maximum height in the scene
+
+    Returns:
+        float: height for the given position
+    """
+    # Add 0.5 because the origin is moved to the middle of the
+    h, w = height_map.shape
+    u = x / (w * HEIGHT_MAP_PIXEL_SIZE) + 0.5
+    v = -z / (h * HEIGHT_MAP_PIXEL_SIZE) + 0.5
+    normalized_height = utils.blerp(height_map, u, v)
+    if normalized_height > 1:
+        print("mama mia!")
+    height = normalized_height * max_height
+    return height
+
+
+def get_orientation(x, z, orient_map):
+    h, w, _ = orient_map.shape
+    u = x / (w * HEIGHT_MAP_PIXEL_SIZE) + 0.5
+    v = -z / (h * HEIGHT_MAP_PIXEL_SIZE) + 0.5
+    i = int(round(u * w))
+    j = int(round(v * h))
+    orient_pixel = orient_map[j][i]
+    dx = (orient_pixel[0] - MAX_COLOR / 2) * 2
+    dy = (orient_pixel[1] - MAX_COLOR / 2) * 2
+    orient_unit_vector = utils.normalize([dx, dy])
+    # Get the angle of rotation in the Z axis
+    rotation = np.arccos(orient_unit_vector[0])
+    if orient_pixel[1] < 0:
+        rotation *= -1
+    return rotation
+
+
+def place_asset(
+    asset, i, j, w, h, footprint, height_map, max_height, orient_map=None
+):
+    # Position
     if 'allowOffset' in asset:
         position_offset = (-0.5 + rng.random(2)) * asset['allowOffset']
     else:
         position_offset = np.zeros(2)
-    # rotation = rng.choice(ROTATIONS)
-    if 'allowRotation' in asset:
-        rotation = rng.random() * asset['allowRotation']
-    else:
-        if orient is not None:
-            dx = (orient[0] - MAX_COLOR // 2) * 2
-            dy = (orient[1] - MAX_COLOR // 2) * 2
-            orient_unit_vector = utils.normalize([dx, dy])
-            # Get the angle of rotation in the Z axis
-            rotation = np.arccos(orient_unit_vector[0])
-            if orient[1] < 0:
-                rotation *= -1
-        else:
-            rotation = 0
+    x = (i - w / 2 + 0.5 + position_offset[0]) * footprint
+    z = (j - h / 2 + 0.5 + position_offset[1]) * footprint
+    y = get_height(x, z, height_map, max_height)
+    pos = Point(x, y, z)
+    # Scale
     if 'allowScale' in asset:
         scale_offset = (rng.random() - 0.5) * asset['allowScale'] * np.ones(3)
     else:
         scale_offset = np.zeros(3)
-    x = (i - w / 2 + 0.5 + position_offset[0]) * footprint
-    y = height
-    z = (j - h / 2 + 0.5 + position_offset[1]) * footprint
-    pos = Point(x, y, z)
     scale = np.ones(3) - scale_offset
     s = Point(scale[0], scale[1], scale[2])
+    # Rotation
+    # rotation = rng.choice(ROTATIONS)
+    if 'allowRotation' in asset:
+        rotation = rng.random() * asset['allowRotation']
+    else:
+        if orient_map is not None:
+            rotation = get_orientation(x, z, orient_map)
+        else:
+            rotation = 0
     placement_dict = {
         'assetId': asset['assetId'],
         'position': pos.to_dict(),
@@ -212,6 +252,8 @@ def procedurally_place(
     h, w = placement_map.shape
     # Iterate placing assets
     placement_json = []
+    # Create a height map array with float values between 0 and 1
+    normalized_height_map = np.array(height_map, dtype=float) / MAX_COLOR
     # Iterate on pixels
     for j in range(h):
         for i in range(w):
@@ -221,19 +263,16 @@ def procedurally_place(
                 for asset in ecotope['data']:
                     accumulated_prob += asset['probability']
                     if p <= accumulated_prob:
-                        height = height_map[j][i] * max_height
-                        if orient_map is not None:
-                            orient = orient_map[j][i]
-                        else:
-                            orient = None
                         placement_dict = place_asset(
-                            asset, i, j, w, h, footprint, height, orient
+                            asset, i, j, w, h, footprint,
+                            normalized_height_map, max_height, orient_map
                         )
                         placement_json.append(placement_dict)
                         break
     return placement_json
 
 
+# noinspection PyUnreachableCode
 def main():
     global chosen_option
     # option = int(input(utils.menu_str(cities))) - 1
@@ -247,7 +286,7 @@ def main():
     new_size = (DENSITY_MAP_SIZE, DENSITY_MAP_SIZE)
     if not os.path.isfile(road_map_path):
         road_map = None
-        resized_orient_map = None
+        orient_map = None
     else:
         utils.exist_or_create(f'{DEBUG_DIR}')
         utils.exist_or_create(f'{DEBUG_DIR}/{chosen_option}')
@@ -260,7 +299,6 @@ def main():
         orient_map_img.save(
             f'{DEBUG_DIR}/{chosen_option}/{ORIENT_MAP_FILENAME}'
         )
-        resized_orient_map = np.asarray(orient_map_img.resize(new_size))
     # Load height map
     height_map_path = f"assets/{chosen_option}/{HEIGHT_MAP_FILENAME}"
     if not os.path.isfile(height_map_path):
@@ -269,12 +307,6 @@ def main():
     height_map_img = img.convert('L')
     height_map = np.array(height_map_img, dtype=np.uint8)
     max_height = DEFAULT_MAX_HEIGHT
-    # Create a resized height map to use for placement
-
-    resized_height_map_img = height_map_img.resize(new_size)
-    resized_height_map = (
-        np.array(resized_height_map_img, dtype=float) / MAX_COLOR
-    )
     # Load ecotopes
     ecotopes_path = f"assets/{chosen_option}/{ECOTOPES_FILENAME}"
     with open(ecotopes_path, 'r') as f:
@@ -307,8 +339,7 @@ def main():
         placement_map = discretize_density(density_map, ecotope_name)
         # Procedurally place
         placement_json += procedurally_place(
-            placement_map, ecotope, resized_height_map, max_height,
-            resized_orient_map
+            placement_map, ecotope, height_map, max_height, orient_map
         )
     # Create the texture for the surface
     surface_texture = paint_surface(road_map, option)

@@ -55,19 +55,23 @@ def normalize_color(color):
     return color / MAX_COLOR
 
 
-def blerp(img_arr, x, y):
+def blerp(img_arr, u, v):
+    if len(img_arr.shape) == 3:
+        height, width, _ = img_arr.shape
+    else:
+        height, width = img_arr.shape
+    x = u * width
+    y = v * height
+    # Flip y value to go from top to bottom
+    y = height - y
     # Interpolate values of pixel neighborhood of x and y
     i = int(np.round(x))
     j = int(np.round(y))
-    # But not in the borders
-    height, width, _ = img_arr.shape
-    # Flip y value to go from top to bottom
-    y = height - y
-    if i == 0 or j == 0 or i == width or j == height:
-        if i == width:
-            i -= 1
-        if j == height:
-            j -= 1
+    if i == 0 or j == 0 or i >= width or j >= height:
+        if i >= width:
+            i = width - 1
+        if j >= height:
+            j -= height - 1
         return img_arr[j][i]
     # t and s are interpolation parameters that go from 0 to 1
     t = x - i + 0.5
