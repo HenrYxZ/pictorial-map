@@ -48,6 +48,8 @@ DENSITY_MAP_SIZE = 40
 PIXEL_SIZE = 8
 # Each pixel in height map will represent 1 mt^2
 HEIGHT_MAP_PIXEL_SIZE = 1
+# Define a key value rotation for the 3 axis
+FULL_ROTATION = "full"
 rng = np.random.default_rng()
 cities = [
     {
@@ -224,16 +226,21 @@ def place_asset(
     # Rotation
     # rotation = rng.choice(ROTATIONS)
     if 'allowRotation' in asset:
-        rotation = rng.random() * asset['allowRotation']
+        if asset['allowRotation'] == FULL_ROTATION:
+            rotation = FULL_ROTATION
+        else:
+            rotation = rng.random() * asset['allowRotation']
+            rotation = float(np.round(rotation, ROUND_DECIMALS))
     else:
         if orient_map is not None:
             rotation = get_orientation(x, z, orient_map)
         else:
             rotation = 0
+        rotation = float(np.round(rotation, ROUND_DECIMALS))
     placement_dict = {
         'assetId': asset['assetId'],
         'position': pos.to_dict(),
-        'rotation': float(np.round(rotation, ROUND_DECIMALS)),
+        'rotation': rotation,
         'scale': s.to_dict()
     }
     return placement_dict

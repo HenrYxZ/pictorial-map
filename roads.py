@@ -108,10 +108,10 @@ def create_derivative(
     for count in range(h * w):
         i = count % (w - distance)
         j = (count // w) % (h - distance)
-        previous_pixel = get_previous(img_arr, i, j, distance)
-        next_pixel = get_next(img_arr, i, j, distance)
+        previous_pixel = float(get_previous(img_arr, i, j, distance))
+        next_pixel = float(get_next(img_arr, i, j, distance))
         difference = next_pixel - previous_pixel
-        derivative[j][i] = difference / 2 + MAX_COLOR / 2
+        derivative[j][i] = int(difference / 2 + MAX_COLOR / 2)
     return derivative
 
 

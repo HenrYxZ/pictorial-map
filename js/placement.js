@@ -2,6 +2,7 @@ import * as THREE from 'https://threejsfundamentals.org/threejs/resources/threej
 import {GLTFLoader} from 'https://threejsfundamentals.org/threejs/resources/threejs/r125/examples/jsm/loaders/GLTFLoader.js';
 const RBGA_CHANNELS = 4;
 const MAX_COLOR_CHANGE = 0.2;
+const FULL_ROTATION = "full";
 
 
 export default class Placer {
@@ -15,7 +16,13 @@ export default class Placer {
     // Move to transform
     const position = sceneObject.position;
     newObject.position.set(position.x, position.y, position.z);
-    newObject.rotation.y = sceneObject.rotation;
+    if (sceneObject.rotation == FULL_ROTATION) {
+      newObject.rotation.x = Math.random() * Math.PI;
+      newObject.rotation.y = Math.random() * Math.PI;
+      newObject.rotation.z = Math.random() * Math.PI;
+    } else {
+      newObject.rotation.y = sceneObject.rotation;
+    }
     const scale = sceneObject.scale;
     newObject.scale.set(scale.x, scale.y, scale.z);
     // Add shadows
