@@ -108,10 +108,10 @@ def create_derivative(
     for count in range(h * w):
         i = count % (w - distance)
         j = (count // w) % (h - distance)
-        previous_pixel = float(get_previous(img_arr, i, j, distance))
-        next_pixel = float(get_next(img_arr, i, j, distance))
-        difference = next_pixel - previous_pixel
-        derivative[j][i] = int(difference / 2 + MAX_COLOR / 2)
+        previous_pixel = get_previous(img_arr, i, j, distance)
+        next_pixel = get_next(img_arr, i, j, distance)
+        difference = (next_pixel - previous_pixel) * 10
+        derivative[j][i] = int(difference + MAX_COLOR / 2)
     return derivative
 
 
@@ -136,15 +136,13 @@ def create_orient_map(dist_map):
 
     Args:
         dist_map(ndarray): 2D array where each element is the distance to the
-            nearest road.
+            nearest road. It has to be in type float!
     Returns:
          ndarray: The orient map with dx in R, dy in G and MAX_COLOR // 2 in B
     """
     h, w = dist_map.shape
     orient_map = np.zeros([h, w, RGB_CHANNELS], dtype=np.uint8)
     # create dx & dy
-    dist_map_img = Image.fromarray(dist_map)
-    dist_map = np.asarray(dist_map_img)
     dx = create_dx(dist_map)
     dy = create_dy(dist_map)
     dx_img = Image.fromarray(np.array(dx, dtype=np.uint8))

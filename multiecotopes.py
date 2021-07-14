@@ -181,8 +181,6 @@ def get_height(x, z, height_map, max_height):
     u = x / (w * HEIGHT_MAP_PIXEL_SIZE) + 0.5
     v = -z / (h * HEIGHT_MAP_PIXEL_SIZE) + 0.5
     normalized_height = utils.blerp(height_map, u, v)
-    if normalized_height > 1:
-        print("mama mia!")
     height = normalized_height * max_height
     return height
 
@@ -301,7 +299,8 @@ def main():
         dist_map = roads.create_dist_map(road_map)
         dist_map_img = Image.fromarray(dist_map)
         dist_map_img.save(f'{DEBUG_DIR}/{chosen_option}/{DIST_MAP_FILENAME}')
-        orient_map = roads.create_orient_map(dist_map)
+        float_dist_map = np.array(dist_map, dtype=float)
+        orient_map = roads.create_orient_map(float_dist_map)
         orient_map_img = Image.fromarray(orient_map)
         orient_map_img.save(
             f'{DEBUG_DIR}/{chosen_option}/{ORIENT_MAP_FILENAME}'
