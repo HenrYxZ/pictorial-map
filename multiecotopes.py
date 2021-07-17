@@ -1,4 +1,6 @@
 import json
+import math
+
 import numpy as np
 import os.path
 from PIL import Image
@@ -25,6 +27,7 @@ ORIENT_MAP_FILENAME = "orient_map.png"
 SURFACE_FILENAME = "surface.json"
 PLACEMENT_FILENAME = "placement.json"
 ECOTOPES_FILENAME = "ecotopes.json"
+CONFIG_FILENAME = "config.json"
 # Textures
 GROUND_TEXTURE = "ground.png"    # colors for the ground triangles
 SURFACE_TEXTURE = "surface.png"  # colors for surface triangle, counting roads
@@ -37,72 +40,49 @@ JSON_INDENT = 2
 # Allow only -+10% offset in position
 MAX_POS_OFFSET = 0.2
 # Default maximum height for the ground
-DEFAULT_MAX_HEIGHT = 32
+DEFAULT_MAX_HEIGHT = 40
 # Allowed rotations
 ROTATIONS = [0, np.pi / 2, np.pi, 3 * np.pi / 2, 2 * np.pi]
 # Map size will be 200mt^2
 MAP_SIZE = 200
-# Density maps will be 40x40 pixels
-DENSITY_MAP_SIZE = 40
-# Each pixel will represent 8 mt square
-PIXEL_SIZE = 8
-# Each pixel in height map will represent 1 mt^2
-HEIGHT_MAP_PIXEL_SIZE = 1
+# # Density maps will be 40x40 pixels
+# DENSITY_MAP_SIZE = 40
+# # Each pixel will represent 8 mt square
+# PIXEL_SIZE = 8
+# # Each pixel in height map will represent 1 mt^2
+# HEIGHT_MAP_PIXEL_SIZE = 1
 # Define a key value rotation for the 3 axis
 FULL_ROTATION = "full"
 rng = np.random.default_rng()
 cities = [
     {
-        "name": "Shechem",
-        "colors": {"roads": [105, 96, 70], "ground": [161, 153, 95]}
+        "name": "Shechem"
     },
     {
-        "name": "Jerusalem",
-        "colors": {"roads": [89, 70, 75], "ground": [161, 153, 148]}
+        "name": "Jerusalem"
     }
 ]
 chosen_option = "shechem"
+config = {}
 
 
-def get_ground_texture(ground_texture_filename, h, w):
-    if os.path.exists(ground_texture_filename):
-        ground_img = Image.open(ground_texture_filename)
-        resized_ground_img = ground_img.resize([h, w])
-        ground_texture = np.asarray(resized_ground_img)
-        return ground_texture
-    else:
-        return None
-
-
-def get_ground_color_at(ground_texture, i, j, option):
-    if ground_texture is not None:
-        ground_color = ground_texture[j][i]
-    else:
-        ground_color = np.array(cities[option].get('colors').get('ground'))
-    return ground_color
-
-
-def paint_surface(road_map, option):
+def paint_surface(road_map, road_color, ground_texture):
     """
     Create a texture for the surface (road + ground)
     Args:
         road_map(Image): Map where each pixel represents the density of road
-        option(int): Option of the chosen city
+        road_color(ndarray): RGB color for the road
+        ground_texture(ndarray): RGB texture for the ground
     Returns:
         2darray: Texture with the colors for the surface in uint8
     """
     road_map_arr = np.asarray(road_map) / MAX_COLOR
     h, w = road_map_arr.shape
     surface_texture = np.zeros([h, w, COLOR_CHANNELS], dtype=np.uint8)
-    ground_texture_filename = f"assets/{chosen_option}/{GROUND_TEXTURE}"
-    road_color = np.array(cities[option].get('colors').get('roads'))
-    # Each pixel color will take the color for the road in road pixels and the
-    # color for the ground in the rest
-    ground_texture = get_ground_texture(ground_texture_filename, h, w)
     for j in range(h):
         for i in range(w):
             # Ground texture will need to match shape of road map
-            ground_color = get_ground_color_at(ground_texture, i, j, option)
+            ground_color = ground_texture[j][i]
             road_weight = road_map_arr[j][i]
             surface_texture[j][i] = (
                 road_weight * road_color + (1 - road_weight) * ground_color
@@ -110,11 +90,7 @@ def paint_surface(road_map, option):
     return surface_texture
 
 
-def create_surface(
-    height_map,
-    max_height=DEFAULT_MAX_HEIGHT,
-    pixel_size=HEIGHT_MAP_PIXEL_SIZE
-):
+def create_surface(height_map, max_height, pixel_size):
     """
     Create a JSON with the necessary information to build the surface of a map
     Args:
@@ -163,7 +139,7 @@ def discretize_density(density_map, ecotope_name):
     return output
 
 
-def get_height(x, z, height_map, max_height):
+def get_height(x, z, height_map):
     """
     Get the height for an asset to be placed in the map. It uses image
     interpolation in the height map.
@@ -171,15 +147,16 @@ def get_height(x, z, height_map, max_height):
         x: position of the asset in the x axis
         z: position of the asset in the x axis
         height_map: the map with height information as a float 2D array
-        max_height: the maximum height in the scene
 
     Returns:
         float: height for the given position
     """
     # Add 0.5 because the origin is moved to the middle of the
     h, w = height_map.shape
-    u = x / (w * HEIGHT_MAP_PIXEL_SIZE) + 0.5
-    v = -z / (h * HEIGHT_MAP_PIXEL_SIZE) + 0.5
+    max_height = config['maxHeight']
+    height_map_pixel_size = config['heightMapPixelSize']
+    u = x / (w * height_map_pixel_size) + 0.5
+    v = -z / (h * height_map_pixel_size) + 0.5
     normalized_height = utils.blerp(height_map, u, v)
     height = normalized_height * max_height
     return height
@@ -187,8 +164,9 @@ def get_height(x, z, height_map, max_height):
 
 def get_orientation(x, z, orient_map):
     h, w, _ = orient_map.shape
-    u = x / (w * HEIGHT_MAP_PIXEL_SIZE) + 0.5
-    v = -z / (h * HEIGHT_MAP_PIXEL_SIZE) + 0.5
+    height_map_pixel_size = config['heightMapPixelSize']
+    u = x / (w * height_map_pixel_size) + 0.5
+    v = -z / (h * height_map_pixel_size) + 0.5
     i = int(round(u * w))
     j = int(round(v * h))
     orient_pixel = orient_map[j][i]
@@ -202,9 +180,7 @@ def get_orientation(x, z, orient_map):
     return rotation
 
 
-def place_asset(
-    asset, i, j, w, h, footprint, height_map, max_height, orient_map=None
-):
+def place_asset(asset, i, j, w, h, footprint, height_map, orient_map=None):
     # Position
     if 'allowOffset' in asset:
         position_offset = (-0.5 + rng.random(2)) * asset['allowOffset']
@@ -212,7 +188,7 @@ def place_asset(
         position_offset = np.zeros(2)
     x = (i - w / 2 + 0.5 + position_offset[0]) * footprint
     z = (j - h / 2 + 0.5 + position_offset[1]) * footprint
-    y = get_height(x, z, height_map, max_height)
+    y = get_height(x, z, height_map)
     pos = Point(x, y, z)
     # Scale
     if 'allowScale' in asset:
@@ -244,16 +220,15 @@ def place_asset(
     return placement_dict
 
 
-def procedurally_place(
-    placement_map, ecotope, height_map, max_height, orient_map=None
-):
-    ratio = int(PIXEL_SIZE // ecotope['footprint'])
+def procedurally_place(placement_map, ecotope, height_map, orient_map=None):
+    pixel_size = config['densityMapPixelSize']
+    ratio = int(pixel_size // ecotope['footprint'])
     if ratio > 1:
         # Divide the pixels so that multiple assets can be placed
         placement_map = utils.resize(placement_map, ratio)
-        footprint = PIXEL_SIZE / ratio
+        footprint = pixel_size / ratio
     else:
-        footprint = PIXEL_SIZE
+        footprint = pixel_size
     h, w = placement_map.shape
     # Iterate placing assets
     placement_json = []
@@ -270,25 +245,41 @@ def procedurally_place(
                     if p <= accumulated_prob:
                         placement_dict = place_asset(
                             asset, i, j, w, h, footprint,
-                            normalized_height_map, max_height, orient_map
+                            normalized_height_map, orient_map
                         )
                         placement_json.append(placement_dict)
                         break
     return placement_json
 
 
-# noinspection PyUnreachableCode
 def main():
     global chosen_option
+    global config
     # option = int(input(utils.menu_str(cities))) - 1
     option = 0
     chosen_option = cities[option]["name"].lower()
 
     timer = utils.Timer()
     timer.start()
+    # Load map config
+    config_path = f"assets/{chosen_option}/{CONFIG_FILENAME}"
+    with open(config_path, 'r') as f:
+        config = json.load(f)
+    # Load height map
+    height_map_path = f"assets/{chosen_option}/{HEIGHT_MAP_FILENAME}"
+    if not os.path.isfile(height_map_path):
+        print(f"Height map {height_map_path} not found")
+    img = Image.open(height_map_path)
+    height_map_img = img.convert('L')
+    height_map = np.array(height_map_img, dtype=np.uint8)
+    max_height = config['maxHeight']
     # Load road map
     road_map_path = f"assets/{chosen_option}/{ROAD_MAP_FILENAME}"
-    new_size = (DENSITY_MAP_SIZE, DENSITY_MAP_SIZE)
+    density_map_pixel_size = config['densityMapPixelSize']
+    density_map_size = int(
+        math.ceil(height_map.shape[0] / density_map_pixel_size)
+    )
+    new_size = (density_map_size, density_map_size)
     if not os.path.isfile(road_map_path):
         road_map = None
         orient_map = None
@@ -305,14 +296,6 @@ def main():
         orient_map_img.save(
             f'{DEBUG_DIR}/{chosen_option}/{ORIENT_MAP_FILENAME}'
         )
-    # Load height map
-    height_map_path = f"assets/{chosen_option}/{HEIGHT_MAP_FILENAME}"
-    if not os.path.isfile(height_map_path):
-        print(f"Height map {height_map_path} not found")
-    img = Image.open(height_map_path)
-    height_map_img = img.convert('L')
-    height_map = np.array(height_map_img, dtype=np.uint8)
-    max_height = DEFAULT_MAX_HEIGHT
     # Load ecotopes
     ecotopes_path = f"assets/{chosen_option}/{ECOTOPES_FILENAME}"
     with open(ecotopes_path, 'r') as f:
@@ -320,13 +303,17 @@ def main():
     # Iterate on ecotopes
     placement_json = []
     ecotopes = sorted(ecotopes, key=lambda e: e['priority'])
-    combined_density_map = np.zeros([DENSITY_MAP_SIZE, DENSITY_MAP_SIZE])
-    ones = np.ones([DENSITY_MAP_SIZE, DENSITY_MAP_SIZE])
+    combined_density_map = np.zeros([density_map_size, density_map_size])
+    ones = np.ones([density_map_size, density_map_size])
     # Combine road maps so density maps don't use that part
     if road_map is not None:
         resized_road_map = road_map.resize(new_size)
-        road_map_arr = np.asarray(resized_road_map, dtype=float) / MAX_COLOR
-        combined_density_map = road_map_arr
+        resized_road_map = np.array(resized_road_map, dtype=np.uint8)
+        # high pass the road map
+        resized_road_map = roads.high_pass(resized_road_map, MAX_COLOR)
+        combined_density_map = (
+            np.asarray(resized_road_map, dtype=float) / MAX_COLOR
+        )
     # Combine ecotopes iterating them by hierarchy level
     for ecotope in ecotopes:
         ecotope_name = ecotope['name']
@@ -345,16 +332,21 @@ def main():
         placement_map = discretize_density(density_map, ecotope_name)
         # Procedurally place
         placement_json += procedurally_place(
-            placement_map, ecotope, height_map, max_height, orient_map
+            placement_map, ecotope, height_map, orient_map
         )
     # Create the texture for the surface
-    surface_texture = paint_surface(road_map, option)
+    ground_img_path = f"assets/{chosen_option}/{GROUND_TEXTURE}"
+    ground_img = Image.open(ground_img_path)
+    ground_texture = np.asarray(ground_img)
+    road_color = np.array(config['roadColor'])
+    surface_texture = paint_surface(road_map, road_color, ground_texture)
     surface_tex_img = Image.fromarray(surface_texture)
     surface_tex_path = f"assets/{chosen_option}/{SURFACE_TEXTURE}"
     surface_tex_img.save(surface_tex_path)
     print(f"Image saved in {surface_tex_path}")
     # Create surface JSON from height map
-    surface_json = create_surface(height_map)
+    height_map_pixel_size = config['heightMapPixelSize']
+    surface_json = create_surface(height_map, max_height, height_map_pixel_size)
     # Store triangles into surface JSON
     surface_path = f"assets/{chosen_option}/{SURFACE_FILENAME}"
     with open(surface_path, 'w') as f:

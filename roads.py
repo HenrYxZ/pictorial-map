@@ -18,7 +18,7 @@ def high_pass(arr, num):
         list: 2D array with a high pass filter
     """
     new_arr = [
-        [num if row[col] else 0 for col in row] for row in arr
+        [num if element else 0 for element in row] for row in arr
     ]
     return new_arr
 
