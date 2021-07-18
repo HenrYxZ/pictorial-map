@@ -1,0 +1,103 @@
+[
+  {
+    "name": "forest",
+    "priority": 1,
+    "footprint": 5,
+    "data": [
+      {
+        "assetId": 2,
+        "probability": 0.8,
+        "footprint": 2,
+        "allowOffset": 0.5,
+        "allowScale": 0.3
+      },
+      {
+        "assetId": 3,
+        "probability": 0.2,
+        "footprint": 0.5,
+        "allowRotation": "full",
+        "allowOffset": 2,
+        "allowScale": 0.3
+      }
+    ]
+  },
+
+  {
+    "name": "houses",
+    "priority": 2,
+    "footprint": 8,
+    "data": [
+      {
+        "assetId": 1,
+        "probability": 0.25,
+        "footprint": 5,
+        "allowOffset": 0.25,
+        "allowScale": 0.2
+      },
+      {
+        "assetId": 7,
+        "probability": 0.25,
+        "footprint": 5,
+        "allowOffset": 0.25,
+        "allowScale": 0.2
+      },
+      {
+        "assetId": 2,
+        "probability": 0.1,
+        "footprint": 2,
+        "allowOffset": 0.5,
+        "allowScale": 0.3
+      },
+      {
+        "assetId": 3,
+        "probability": 0.05,
+        "footprint": 0.5,
+        "allowOffset": 2,
+        "allowScale": 0.3,
+        "allowRotation": "full"
+      },
+      {
+        "assetId": 4,
+        "probability": 0.05,
+        "footprint": 5,
+        "allowOffset": 0.25,
+        "allowScale": 0.2
+      },
+      {
+        "assetId": 8,
+        "probability": 0.05,
+        "footprint": 5,
+        "allowOffset": 0.25,
+        "allowScale": 0.2
+      },
+      {
+        "assetId": 5,
+        "probability": 0.05,
+        "footprint": 5,
+        "allowOffset": 0.25,
+        "allowScale": 0
+      },
+      {
+        "assetId": 9,
+        "probability": 0.05,
+        "footprint": 5,
+        "allowOffset": 0.25,
+        "allowScale": 0
+      },
+      {
+        "assetId": 6,
+        "probability": 0.075,
+        "footprint": 5,
+        "allowOffset": 0.25,
+        "allowScale": 0.2
+      },
+      {
+        "assetId": 10,
+        "probability": 0.075,
+        "footprint": 5,
+        "allowOffset": 0.25,
+        "allowScale": 0.2
+      }
+    ]
+  }
+]

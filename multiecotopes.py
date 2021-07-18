@@ -37,31 +37,10 @@ MAX_QUALITY = 95
 ROUND_DECIMALS = 3
 # Indent 2 spaces in JSON files
 JSON_INDENT = 2
-# Allow only -+10% offset in position
-MAX_POS_OFFSET = 0.2
-# Default maximum height for the ground
-DEFAULT_MAX_HEIGHT = 40
-# Allowed rotations
-ROTATIONS = [0, np.pi / 2, np.pi, 3 * np.pi / 2, 2 * np.pi]
-# Map size will be 200mt^2
-MAP_SIZE = 200
-# # Density maps will be 40x40 pixels
-# DENSITY_MAP_SIZE = 40
-# # Each pixel will represent 8 mt square
-# PIXEL_SIZE = 8
-# # Each pixel in height map will represent 1 mt^2
-# HEIGHT_MAP_PIXEL_SIZE = 1
 # Define a key value rotation for the 3 axis
 FULL_ROTATION = "full"
 rng = np.random.default_rng()
-cities = [
-    {
-        "name": "Shechem"
-    },
-    {
-        "name": "Jerusalem"
-    }
-]
+cities = ["Jerusalem", "Shechem"]
 chosen_option = "shechem"
 config = {}
 
@@ -255,9 +234,9 @@ def procedurally_place(placement_map, ecotope, height_map, orient_map=None):
 def main():
     global chosen_option
     global config
-    # option = int(input(utils.menu_str(cities))) - 1
-    option = 0
-    chosen_option = cities[option]["name"].lower()
+    option = int(input(utils.menu_str(cities))) - 1
+    # option = 0
+    chosen_option = cities[option].lower()
 
     timer = utils.Timer()
     timer.start()
@@ -265,6 +244,10 @@ def main():
     config_path = f"assets/{chosen_option}/{CONFIG_FILENAME}"
     with open(config_path, 'r') as f:
         config = json.load(f)
+    height_map_pixel_size = config['heightMapPixelSize']
+    max_height = config['maxHeight']
+    density_map_pixel_size = config['densityMapPixelSize']
+    road_color = np.array(config['roadColor'])
     # Load height map
     height_map_path = f"assets/{chosen_option}/{HEIGHT_MAP_FILENAME}"
     if not os.path.isfile(height_map_path):
@@ -272,12 +255,15 @@ def main():
     img = Image.open(height_map_path)
     height_map_img = img.convert('L')
     height_map = np.array(height_map_img, dtype=np.uint8)
-    max_height = config['maxHeight']
+
     # Load road map
     road_map_path = f"assets/{chosen_option}/{ROAD_MAP_FILENAME}"
-    density_map_pixel_size = config['densityMapPixelSize']
+
     density_map_size = int(
-        math.ceil(height_map.shape[0] / density_map_pixel_size)
+        math.ceil(
+            (height_map.shape[0] * height_map_pixel_size) /
+            density_map_pixel_size
+        )
     )
     new_size = (density_map_size, density_map_size)
     if not os.path.isfile(road_map_path):
@@ -338,14 +324,12 @@ def main():
     ground_img_path = f"assets/{chosen_option}/{GROUND_TEXTURE}"
     ground_img = Image.open(ground_img_path)
     ground_texture = np.asarray(ground_img)
-    road_color = np.array(config['roadColor'])
     surface_texture = paint_surface(road_map, road_color, ground_texture)
     surface_tex_img = Image.fromarray(surface_texture)
     surface_tex_path = f"assets/{chosen_option}/{SURFACE_TEXTURE}"
     surface_tex_img.save(surface_tex_path)
     print(f"Image saved in {surface_tex_path}")
     # Create surface JSON from height map
-    height_map_pixel_size = config['heightMapPixelSize']
     surface_json = create_surface(height_map, max_height, height_map_pixel_size)
     # Store triangles into surface JSON
     surface_path = f"assets/{chosen_option}/{SURFACE_FILENAME}"

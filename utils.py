@@ -6,6 +6,7 @@ import time
 
 COLOR_CHANNELS = 3
 MAX_COLOR = 255
+COLOR_BLACK = np.zeros(3)
 
 
 def open_image(img_filename):
@@ -119,23 +120,28 @@ def exist_or_create(dir_path):
         os.mkdir(dir_path)
 
 
-def create_texture_from_noise(color, noise_img_path, noise_weight=0.2):
+def create_texture_from_noise(
+        color, size, noise_img_path, dark_color=COLOR_BLACK
+):
     """
     Create a 2D image texture by multiplying a given color with a grayscale
     noise.
     Args:
         color(ndarray): RGB color
+        size(int): length of one side in pixels
         noise_img(Image): Noise image
+        dark_color(ndarray): RGB for dark color to interpolate
 
     Returns:
         Image: 2D image texture
     """
     noise_img = Image.open(noise_img_path)
+    if noise_img.size[0] != size:
+        noise_img = noise_img.resize([size, size])
     noise_arr = np.asarray(noise_img) / MAX_COLOR
-    output_arr = np.array(
-        (1 - noise_arr * noise_weight) * color, dtype=np.uint8
-    )
-    output_img = Image.fromarray(output_arr)
+    combined_array = noise_arr * color + (1 - noise_arr) * dark_color
+    final_array = np.array(combined_array, dtype=np.uint8)
+    output_img = Image.fromarray(final_array)
     return output_img
 
 
