@@ -159,6 +159,13 @@ def get_orientation(x, z, orient_map):
     return rotation
 
 
+def fix_rotation(rotation, asset_id):
+    if asset_id in [1, 7, 4, 8]:
+        return rotation + math.pi / 2
+    elif asset_id in [6, 10]:
+        return rotation - math.pi / 2
+
+
 def place_asset(asset, i, j, w, h, footprint, height_map, orient_map=None):
     # Position
     if 'allowOffset' in asset:
@@ -190,6 +197,8 @@ def place_asset(asset, i, j, w, h, footprint, height_map, orient_map=None):
         else:
             rotation = 0
         rotation = float(np.round(rotation, ROUND_DECIMALS))
+    # REMOVE THIS LINE (IT'S ONLY FOR THIS ASSETS)
+    rotation = fix_rotation(rotation, int(asset['assetId']))
     placement_dict = {
         'assetId': asset['assetId'],
         'position': pos.to_dict(),
@@ -277,7 +286,7 @@ def main():
         dist_map_img = Image.fromarray(dist_map)
         dist_map_img.save(f'{DEBUG_DIR}/{chosen_option}/{DIST_MAP_FILENAME}')
         float_dist_map = np.array(dist_map, dtype=float)
-        orient_map = roads.create_orient_map(float_dist_map)
+        orient_map = roads.create_orient_map(float_dist_map, chosen_option)
         orient_map_img = Image.fromarray(orient_map)
         orient_map_img.save(
             f'{DEBUG_DIR}/{chosen_option}/{ORIENT_MAP_FILENAME}'

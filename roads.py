@@ -2,7 +2,7 @@ import numpy as np
 from PIL import Image
 
 MAX_COLOR = 255
-DEFAULT_COMPARISON_DISTANCE = 5
+DEFAULT_COMPARISON_DISTANCE = 2
 RGB_CHANNELS = 3
 
 
@@ -129,7 +129,7 @@ def create_dy(img_arr):
     return dy
 
 
-def create_orient_map(dist_map):
+def create_orient_map(dist_map, map_name):
     """
     Create a numpy array where each element is a RGB pixel. R means
     difference in x, G means difference in y and B is irrelevant.
@@ -147,8 +147,8 @@ def create_orient_map(dist_map):
     dy = create_dy(dist_map)
     dx_img = Image.fromarray(np.array(dx, dtype=np.uint8))
     dy_img = Image.fromarray(np.array(dy, dtype=np.uint8))
-    dx_img.save('debug/shechem/dx.png')
-    dy_img.save('debug/shechem/dy.png')
+    dx_img.save(f'debug/{map_name}/dx.png')
+    dy_img.save(f'debug/{map_name}/dy.png')
     for i in range(h * w):
         row = i // w
         col = i - row * w

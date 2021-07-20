@@ -17,9 +17,9 @@ export default class Placer {
     const position = sceneObject.position;
     newObject.position.set(position.x, position.y, position.z);
     if (sceneObject.rotation == FULL_ROTATION) {
-      newObject.rotation.x = Math.random() * Math.PI;
-      newObject.rotation.y = Math.random() * Math.PI;
-      newObject.rotation.z = Math.random() * Math.PI;
+      newObject.rotation.x = Math.random() * 2 *  Math.PI;
+      newObject.rotation.y = Math.random() * 2 * Math.PI;
+      newObject.rotation.z = Math.random() * 2 * Math.PI;
     } else {
       newObject.rotation.y = sceneObject.rotation;
     }
