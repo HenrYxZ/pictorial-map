@@ -8,5 +8,7 @@
   {"id":  7, "name":  "square house 2", "filepath": "../assets/square2.glb"},
   {"id": 8, "name": "tall house 2", "filepath": "../assets/tall2.glb"},
   {"id": 9, "name": "shoe house 1", "filepath": "../assets/shoe1.glb"},
-  {"id": 10, "name": "shoe box house 2", "filepath": "../assets/shoe_box2.glb"}
+  {"id": 10, "name": "shoe box house 2", "filepath": "../assets/shoe_box2.glb"},
+  {"id": 11, "name": "temple", "filepath": "../assets/temple.glb"},
+  {"id": 12, "name":  "joshua stone", "filepath": "../assets/joshua.glb"}
 ]

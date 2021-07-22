@@ -345,6 +345,35 @@ def main():
     with open(surface_path, 'w') as f:
         json.dump(surface_json, f, indent=JSON_INDENT)
     print(f"Finished writing surface json file in {surface_path}")
+    # LANDMARKS REMOVE THIS
+    if chosen_option == 'jerusalem':
+        x = 194 - 320 / 2
+        z = 93 - 320 / 2
+        normalized_height_map = np.array(height_map, dtype=float) / MAX_COLOR
+        y = get_height(x, z, normalized_height_map)
+        pos = Point(x, y, z)
+        s = Point(1, 1, 1)
+        placement_dict = {
+            'assetId': 11,
+            'position': pos.to_dict(),
+            'rotation': 0,
+            'scale': s.to_dict()
+        }
+        placement_json.append(placement_dict)
+    if chosen_option == 'shechem':
+        x = 243 - 320 / 2
+        z = 153 - 320 / 2
+        normalized_height_map = np.array(height_map, dtype=float) / MAX_COLOR
+        y = get_height(x, z, normalized_height_map)
+        pos = Point(x, y, z)
+        s = Point(3, 3, 3)
+        placement_dict = {
+            'assetId': 12,
+            'position': pos.to_dict(),
+            'rotation': math.pi / 2,
+            'scale': s.to_dict()
+        }
+        placement_json.append(placement_dict)
     # Save placement array in JSON
     placement_path = f"assets/{chosen_option}/{PLACEMENT_FILENAME}"
     with open(placement_path, 'w') as f:

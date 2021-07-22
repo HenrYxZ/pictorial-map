@@ -99,21 +99,5 @@
         "allowScale": 0.2
       }
     ]
-  },
-
-  {
-    "name": "rockies",
-    "priority": 3,
-    "footprint": 5,
-    "data": [
-      {
-        "assetId": 3,
-        "probability": 0.9,
-        "footprint": 0.5,
-        "allowRotation": "full",
-        "allowOffset": 2,
-        "allowScale": 0.4
-      }
-    ]
   }
 ]
