@@ -1,7 +1,7 @@
-import * as THREE from 'https://threejsfundamentals.org/threejs/resources/threejs/r125/build/three.module.js';
-import {OrbitControls} from 'https://threejsfundamentals.org/threejs/resources/threejs/r125/examples/jsm/controls/OrbitControls.js';
-import {GLTFLoader} from 'https://threejsfundamentals.org/threejs/resources/threejs/r125/examples/jsm/loaders/GLTFLoader.js';
-// import {Water} from 'https://threejsfundamentals.org/threejs/resources/threejs/r125/examples/jsm/objects/Water.js';
+import * as THREE from 'https://cdn.skypack.dev/three@0.125';
+import {OrbitControls} from 'https://cdn.skypack.dev/three@0.125/examples/jsm/controls/OrbitControls.js';
+import {GLTFLoader} from 'https://cdn.skypack.dev/three@0.125/examples/jsm/loaders/GLTFLoader.js';
+// import {Water} from 'https://cdn.skypack.dev/three@0.125/examples/jsm/objects/Water.js';
 import Placer from './placement.js';
 import addSurface from './surface.js';
 

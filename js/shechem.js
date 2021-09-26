@@ -1,4 +1,4 @@
-import * as THREE from 'https://threejsfundamentals.org/threejs/resources/threejs/r125/build/three.module.js';
+import * as THREE from 'https://cdn.skypack.dev/three@0.125';
 import {main} from './main.js';
 
 const mapName = 'shechem';
