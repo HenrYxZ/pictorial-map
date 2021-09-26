@@ -227,5 +227,8 @@ export async function main(mapName, skyTexture) {
     requestAnimationFrame(render);
   }
 
+  // Hide loading message
+  document.getElementById("spinner").hidden = true;
+
   requestAnimationFrame(render);
 }
