@@ -1,6 +1,7 @@
 import * as THREE from 'https://threejsfundamentals.org/threejs/resources/threejs/r125/build/three.module.js';
 import {OrbitControls} from 'https://threejsfundamentals.org/threejs/resources/threejs/r125/examples/jsm/controls/OrbitControls.js';
 import {GLTFLoader} from 'https://threejsfundamentals.org/threejs/resources/threejs/r125/examples/jsm/loaders/GLTFLoader.js';
+// import {Water} from 'https://threejsfundamentals.org/threejs/resources/threejs/r125/examples/jsm/objects/Water.js';
 import Placer from './placement.js';
 import addSurface from './surface.js';
 
@@ -38,6 +39,12 @@ async function loadAssets() {
   return assets;
 }
 
+/* async function loadConfig(mapName) {
+  const configResponse = await fetch('../assets/' + mapName + '/config.json');
+  const config = await configResponse.json();
+  return config;
+} */
+
 
 export async function main(mapName, skyTexture) {
   const canvas = document.querySelector('#c');
@@ -55,7 +62,7 @@ export async function main(mapName, skyTexture) {
   const height = canvas.clientHeight;
   const aspectRatio = width / height;
   const skyCam = new THREE.PerspectiveCamera(30, width / height, 1000, 10000);
-
+ //  const config = await loadConfig(mapName);
 
   // Set Camera
   const size = 150;
@@ -112,6 +119,37 @@ export async function main(mapName, skyTexture) {
   // Add ambient light
   const ambient_light = new THREE.AmbientLight(0x78756d); // soft white light
   scene.add(ambient_light);
+
+/*   // Add water
+  const waterHeight = config.waterHeight;
+  let water = null;
+  debugger;
+  if (waterHeight !== undefined) {
+    const waterGeometry = new THREE.PlaneGeometry(MAP_WIDTH, MAP_HEIGHT);
+		water = new Water(
+			waterGeometry,
+			{
+				textureWidth: 512,
+				textureHeight: 512,
+				waterNormals: new THREE.TextureLoader().load(
+          '../assets/waternormals.jpg',
+          function ( texture ) {
+					  texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+				  }
+        ),
+				sunDirection: new THREE.Vector3(),
+				sunColor: 0xffffff,
+				waterColor: 0x34cfeb,
+				distortionScale: 1,
+				fog: scene.fog !== undefined
+			}
+		);
+
+		water.rotation.x = - Math.PI / 2;
+    water.position.y = waterHeight;
+    debugger;
+		scene.add(water);
+  } */
 
   // Load assets
   const assets = await loadAssets();
@@ -172,6 +210,11 @@ export async function main(mapName, skyTexture) {
     camera.left = -aspect * size / 2;
     camera.right = aspect * size / 2;
     camera.updateProjectionMatrix();
+
+    /* // animate water
+    if (waterHeight !== undefined) {
+      water.material.uniforms['time'].value += 1.0 / 60.0;
+    } */
 
     skyCam.position.copy(camera.position);
     skyCam.lookAt(0, 0, 0);
