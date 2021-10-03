@@ -40,7 +40,7 @@ JSON_INDENT = 2
 # Define a key value rotation for the 3 axis
 FULL_ROTATION = "full"
 rng = np.random.default_rng()
-cities = ["Jerusalem", "Shechem"]
+cities = ["Jerusalem", "Shechem", "San-fran"]
 chosen_option = "shechem"
 config = {}
 
@@ -331,13 +331,14 @@ def main():
         )
     # Create the texture for the surface
     ground_img_path = f"assets/{chosen_option}/{GROUND_TEXTURE}"
-    ground_img = Image.open(ground_img_path)
-    ground_texture = np.asarray(ground_img)
-    surface_texture = paint_surface(road_map, road_color, ground_texture)
-    surface_tex_img = Image.fromarray(surface_texture)
-    surface_tex_path = f"assets/{chosen_option}/{SURFACE_TEXTURE}"
-    surface_tex_img.save(surface_tex_path)
-    print(f"Image saved in {surface_tex_path}")
+    if os.path.isfile(ground_img_path):
+        ground_img = Image.open(ground_img_path)
+        ground_texture = np.asarray(ground_img)
+        surface_texture = paint_surface(road_map, road_color, ground_texture)
+        surface_tex_img = Image.fromarray(surface_texture)
+        surface_tex_path = f"assets/{chosen_option}/{SURFACE_TEXTURE}"
+        surface_tex_img.save(surface_tex_path)
+        print(f"Image saved in {surface_tex_path}")
     # Create surface JSON from height map
     surface_json = create_surface(height_map, max_height, height_map_pixel_size)
     # Store triangles into surface JSON
