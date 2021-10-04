@@ -1,9 +1,14 @@
 import * as THREE from 'https://cdn.skypack.dev/three@0.125';
-import {OrbitControls} from 'https://cdn.skypack.dev/three@0.125/examples/jsm/controls/OrbitControls.js';
-import {GLTFLoader} from 'https://cdn.skypack.dev/three@0.125/examples/jsm/loaders/GLTFLoader.js';
-// import {Water} from 'https://cdn.skypack.dev/three@0.125/examples/jsm/objects/Water.js';
+import { OrbitControls } from 'https://cdn.skypack.dev/three@0.125/examples/jsm/controls/OrbitControls.js';
+import { GLTFLoader } from 'https://cdn.skypack.dev/three@0.125/examples/jsm/loaders/GLTFLoader.js';
+import { GUI } from 'https://cdn.skypack.dev/three@0.125/examples/jsm/libs/dat.gui.module.js';
+// import { Water } from 'https://cdn.skypack.dev/three@0.125/examples/jsm/objects/Water.js';
+import { Sky } from 'https://cdn.skypack.dev/three@0.125/examples/jsm/objects/Sky.js';
+
+// Local Imports
 import Placer from './placement.js';
 import addSurface from './surface.js';
+
 
 const gltfLoader = new GLTFLoader();
 const MAP_WIDTH = 320;
@@ -46,7 +51,7 @@ async function loadAssets() {
 } */
 
 
-export async function main(mapName, skyTexture) {
+export async function main(mapName) {
   const canvas = document.querySelector('#c');
   // const renderer = new THREE.WebGLRenderer({
   //   canvas, antialias: true
@@ -54,6 +59,11 @@ export async function main(mapName, skyTexture) {
   const renderer = new THREE.WebGLRenderer({
     canvas, antialias: true, alpha: true
   });
+  renderer.setPixelRatio( window.devicePixelRatio );
+  renderer.setSize( window.innerWidth, window.innerHeight );
+  renderer.outputEncoding = THREE.sRGBEncoding;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 0.5;
   renderer.shadowMap.enabled = true;
   // to antialias the shadow
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -88,7 +98,9 @@ export async function main(mapName, skyTexture) {
   // scene.background = new THREE.Color('black');
   scene.background = null;
   const skyScene = new THREE.Scene();
-  skyScene.background = skyTexture;
+  // Add Sky object
+  let sky, sun;
+  // skyScene.background = skyTexture;
   // Add Sky Sphere
   // const skyMat = new THREE.MeshBasicMaterial({map: skyTexture});
   // skyMat.side = THREE.DoubleSide;
@@ -162,6 +174,61 @@ export async function main(mapName, skyTexture) {
   const placement = await placementResponse.json();
   placer.usePlacement(placement);
 
+  // Initialize Sky
+  function initSky() {
+
+    // Add Sky
+    sky = new Sky();
+    sky.scale.setScalar( 4500 );
+    skyScene.add( sky );
+  
+    sun = new THREE.Vector3();
+  
+    /// GUI
+    const effectController = {
+      turbidity: 2.3,
+      rayleigh: 0.208,
+      mieCoefficient: 0.023,
+      mieDirectionalG: 0.128,
+      elevation: 23.2,
+      azimuth: 180,
+      exposure: renderer.toneMappingExposure
+    };
+  
+    function guiChanged() {
+  
+      const uniforms = sky.material.uniforms;
+      uniforms[ 'turbidity' ].value = effectController.turbidity;
+      uniforms[ 'rayleigh' ].value = effectController.rayleigh;
+      uniforms[ 'mieCoefficient' ].value = effectController.mieCoefficient;
+      uniforms[ 'mieDirectionalG' ].value = effectController.mieDirectionalG;
+  
+      const phi = THREE.MathUtils.degToRad(90 - effectController.elevation);
+      const theta = THREE.MathUtils.degToRad(effectController.azimuth);
+  
+      sun.setFromSphericalCoords(1, phi, theta);
+  
+      uniforms['sunPosition'].value.copy(sun);
+  
+      renderer.toneMappingExposure = effectController.exposure;
+      renderer.render(skyScene, skyCam);
+  
+    }
+  
+    const gui = new GUI();
+  
+    gui.add( effectController, 'turbidity', 0.0, 20.0, 0.1 ).onChange( guiChanged );
+    gui.add( effectController, 'rayleigh', 0.0, 4, 0.001 ).onChange( guiChanged );
+    gui.add( effectController, 'mieCoefficient', 0.0, 0.1, 0.001 ).onChange( guiChanged );
+    gui.add( effectController, 'mieDirectionalG', 0.0, 1, 0.001 ).onChange( guiChanged );
+    gui.add( effectController, 'elevation', 0, 90, 0.1 ).onChange( guiChanged );
+    gui.add( effectController, 'azimuth', - 180, 180, 0.1 ).onChange( guiChanged );
+    gui.add( effectController, 'exposure', 0, 1, 0.0001 ).onChange( guiChanged );
+  
+    guiChanged();
+  
+  }
+
   // Set Scissor
   function setScissorForElement(elem) {
     const canvasRect = canvas.getBoundingClientRect();
@@ -215,7 +282,8 @@ export async function main(mapName, skyTexture) {
     if (waterHeight !== undefined) {
       water.material.uniforms['time'].value += 1.0 / 60.0;
     } */
-
+    // skyCam.position.x = camera.position.x;
+    // skyCam.position.z = camera.position.z;
     skyCam.position.copy(camera.position);
     skyCam.lookAt(0, 0, 0);
 
@@ -229,6 +297,17 @@ export async function main(mapName, skyTexture) {
 
   // Hide loading message
   document.getElementById("spinner").hidden = true;
+  initSky();
 
   requestAnimationFrame(render);
 }
+
+// -----------------------------------------------------------------------------
+// Run the program
+
+let url = window.location.href;
+if (url.slice(-1) == "/") {
+  url = url.substring(0, url.length - 1)
+}
+const mapName = url.split("/").pop();
+main(mapName);
