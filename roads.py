@@ -137,6 +137,7 @@ def create_orient_map(dist_map, map_name):
     Args:
         dist_map(ndarray): 2D array where each element is the distance to the
             nearest road. It has to be in type float!
+        map_name(str): Name of the map given for debugging
     Returns:
          ndarray: The orient map with dx in R, dy in G and MAX_COLOR // 2 in B
     """
@@ -156,18 +157,3 @@ def create_orient_map(dist_map, map_name):
         orient_map[row][col][1] = dy[row][col]
         orient_map[row][col][2] = MAX_COLOR
     return orient_map
-
-
-def test_img():
-    road_map = Image.open('assets/shechem/road_map.png').convert('L')
-    dist_map = create_dist_map(road_map)
-    dist_map_img = Image.fromarray(dist_map)
-    dist_map_img.save('dist_map.png')
-    # create orient map
-    orient_map = create_orient_map(dist_map)
-    orient_map_img = Image.fromarray(orient_map)
-    orient_map_img.save('orient_map.png')
-
-
-if __name__ == '__main__':
-    test_img()
