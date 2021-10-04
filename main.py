@@ -39,6 +39,8 @@ ROUND_DECIMALS = 3
 JSON_INDENT = 2
 # Define a key value rotation for the 3 axis
 FULL_ROTATION = "full"
+# Value for random rotation
+RANDOM_ROTATION = "random"
 rng = np.random.default_rng()
 cities = ["Jerusalem", "Shechem", "San-fran"]
 chosen_option = "shechem"
@@ -190,6 +192,8 @@ def place_asset(asset, i, j, w, h, footprint, height_map, orient_map=None):
     if 'allowRotation' in asset:
         if asset['allowRotation'] == FULL_ROTATION:
             rotation = FULL_ROTATION
+        elif asset['allowRotation'] == RANDOM_ROTATION:
+            rotation = rng.random() * 2 * np.pi
         else:
             rotation = rng.random() * asset['allowRotation']
     else:
