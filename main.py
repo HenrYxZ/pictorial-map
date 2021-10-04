@@ -164,6 +164,8 @@ def fix_rotation(rotation, asset_id):
         return rotation + math.pi / 2
     elif asset_id in [6, 10]:
         return rotation - math.pi / 2
+    else:
+        return rotation
 
 
 def place_asset(asset, i, j, w, h, footprint, height_map, orient_map=None):
@@ -190,15 +192,15 @@ def place_asset(asset, i, j, w, h, footprint, height_map, orient_map=None):
             rotation = FULL_ROTATION
         else:
             rotation = rng.random() * asset['allowRotation']
-            rotation = float(np.round(rotation, ROUND_DECIMALS))
     else:
         if orient_map is not None:
             rotation = get_orientation(x, z, orient_map)
         else:
             rotation = 0
-        rotation = float(np.round(rotation, ROUND_DECIMALS))
     # REMOVE THIS LINE (IT'S ONLY FOR THIS ASSETS)
-    rotation = fix_rotation(rotation, int(asset['assetId']))
+    if rotation != FULL_ROTATION:
+        rotation = fix_rotation(rotation, int(asset['assetId']))
+        rotation = float(np.round(rotation, ROUND_DECIMALS))
     placement_dict = {
         'assetId': asset['assetId'],
         'position': pos.to_dict(),
