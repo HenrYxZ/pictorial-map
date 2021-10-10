@@ -28,6 +28,7 @@ SURFACE_FILENAME = "surface.json"
 PLACEMENT_FILENAME = "placement.json"
 ECOTOPES_FILENAME = "ecotopes.json"
 CONFIG_FILENAME = "config.json"
+MAPS_FILENAME = "js/maps.json"
 # Textures
 GROUND_TEXTURE = "ground.png"    # colors for the ground triangles
 SURFACE_TEXTURE = "surface.png"  # colors for surface triangle, counting roads
@@ -42,7 +43,6 @@ FULL_ROTATION = "full"
 # Value for random rotation
 RANDOM_ROTATION = "random"
 rng = np.random.default_rng()
-cities = ["Jerusalem", "Shechem", "San-fran"]
 chosen_option = "shechem"
 config = {}
 
@@ -249,8 +249,10 @@ def procedurally_place(placement_map, ecotope, height_map, orient_map=None):
 def main():
     global chosen_option
     global config
+    # Load map names
+    with open(MAPS_FILENAME, 'r') as f:
+        cities = json.load(f)
     option = int(input(utils.menu_str(cities))) - 1
-    # option = 0
     chosen_option = cities[option].lower()
 
     timer = utils.Timer()
