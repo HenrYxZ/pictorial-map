@@ -47,6 +47,7 @@ chosen_option = "shechem"
 config = {}
 
 
+# noinspection PyTypeChecker
 def paint_surface(road_map, road_color, ground_texture):
     """
     Create a texture for the surface (road + ground)
