@@ -192,6 +192,11 @@ forest_density_map.png, but only black pixels in houses_density_map.png.
 Procedural Placement uses that information to decide which assets to place 
 and how frequently.
 
+**All your density maps have to be of the same size in
+pixels and make sure that your densityMapPixelSize * the size of your 
+density map image is the same as heightMapPixelSize * the size of your height
+map image**
+
 ### Run Procedural Placement script
 
 Before you run the script make sure you add the name of your map to the 
