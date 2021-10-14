@@ -149,15 +149,6 @@ map, you will define ecotopes in the ecotopes.json file and will look like this:
 In the example there is one ecotope called **forest** which has assets like 
 trees and rocks, and then **houses** which has one type of house and rocks.
 
-Ecotopes have a priority meaning that the ones with lower value are placed first
-(it's more like an order), so if a tree is placed first then there won't be 
-any house placed in the same spot. They also have a footprint which is the 
-length of the side of a squared region in which assets are placed. Then data,
-defines the assets associated with each ecotope and the probability they 
-have. That means for example, that if a forest has a probability of 0.7 for 
-trees and 0.3 for rocks, on average you could expect that around 70% of the 
-places assigned to forest will have a tree on them and 30% a rock. 
-
 The field assetId is the ID of the asset refered to. One must define assets with
 their IDs in an *assets.json* file inside the js folder of the project root. 
 Here is an example of that file:
@@ -173,11 +164,20 @@ Here is an example of that file:
 
 The idea is that assets are separated from individual maps.
 
+Ecotopes have a priority meaning that the ones with lower value are placed first
+(it's more like an order), so if a tree is placed first then there won't be 
+any house placed in the same spot. They also have a footprint which is the 
+length of the side of a squared region in which assets are placed. Then data,
+defines the assets associated with each ecotope and the probability they 
+have. That means for example, that if a forest has a probability of 0.7 for 
+trees and 0.3 for rocks, on average you could expect that around 70% of the 
+places assigned to forest will have a tree on them and 30% a rock.
+
 The field for allowOffset is a float value which means that the asset will 
 be placed with a random offset not greater than that value, similarly to 
 allowScale. In the case of allowRotation, the value given is the maximum 
 value for a random rotation in the up axis (y), but you can also give the 
-value **"full"** meaning that it will be rotated randomly in all 3 axis. If 
+value *"full"* meaning that it will be rotated randomly in all 3 axis. If 
 an asset doesn't have allowRotation defined and there is a road, it will be 
 rotated to face the nearest road, if there isn't any road, it will have 0 
 rotation.
@@ -195,9 +195,9 @@ and how frequently.
 ### Run Procedural Placement script
 
 Before you run the script make sure you add the name of your map to the 
-*maps.json* file that is in the **js** folder. You should put the same name of
+*maps.json* file that is in the *js* folder. You should put the same name of
 the folder where your map is stored. So for example, if your current
-**maps.json** file looks like this:
+*maps.json* file looks like this:
 
 ```json
 ["schehem", "jerusalem"]
@@ -221,15 +221,16 @@ new files inside the map's folder like placement maps for each ecotope and a
 ### Create HTML page
 
 To be able to view the newly generated map, copy one of the other map's 
-folder, but the one in the project root, not in the **assets** folder. Then 
+folder, but the one in the project root, not in the *assets* folder. Then 
 rename it to have the name of your new map and modify the index.html inside 
-so that the **title** has the name of your new map.
+so that the *title* has the name of your new map.
 
 ### (Optional) Adding more 3D assets
 
 If you want to add new 3D assets for your project, just copy them inside the 
-**assets** folder and modify the **assets.json** file inside the **js** 
-folder to define the new assets, including ID, name and filepath.
+*assets* folder and modify the *assets.json* file inside the *js* 
+folder to define the new assets, including ID, name and filepath. Notice 
+that **they have to be in glTF format**.
 
 ## Dependencies
 
