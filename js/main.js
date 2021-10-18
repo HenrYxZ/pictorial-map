@@ -226,6 +226,8 @@ export async function main(mapName) {
     gui.add( effectController, 'exposure', 0, 1, 0.0001 ).onChange( guiChanged );
   
     guiChanged();
+
+    gui.close();
   
   }
 
