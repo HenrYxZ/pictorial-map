@@ -1,17 +1,20 @@
-# Local modules
 import numpy as np
 import json
 
+# Local modules
 import utils
 
 CONFIG_FILENAME = "config.json"
-CITIES = ["Jerusalem", "Shechem"]
+MAPS_FILENAME = "maps.json"
 SIZE = 320
 
 
 def main():
-    option = int(input(utils.menu_str(CITIES))) - 1
-    city = CITIES[option].lower()
+    maps_path = f"js/maps.json"
+    with open(maps_path, 'r') as f:
+        cities = json.load(f)
+    option = int(input(utils.menu_str(cities))) - 1
+    city = cities[option]
     config_path = f"assets/{city}/{CONFIG_FILENAME}"
     with open(config_path, 'r') as f:
         config = json.load(f)
