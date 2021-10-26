@@ -38,6 +38,13 @@ script. After you run the script other new data will be generated that will be
 used by the Web App. You will also need to copy an HTML page for your new map to
 show.
 
+### Steps
+
+1. [Create input data](#create-input-data)
+2. [Run Procedural Placement script](#run-procedural-placement-script)
+3. [Create HTML page](#create-html-page)
+4. [(Optional) Adding more 3D assets](#optional-adding-more-3d-assets)
+
 ### Create input data
 
 First create a new folder inside assets with the name of your map. Then you 
