@@ -106,6 +106,7 @@ def menu_str(options):
     s = "Select an option:\n"
     for opt_num, opt in enumerate(options, start=1):
         s += f"[{opt_num}] for {opt}\n"
+    s += "[0] to exit\n"
     return s
 
 

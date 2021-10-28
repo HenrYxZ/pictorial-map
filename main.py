@@ -1,5 +1,6 @@
 import json
 import math
+import sys
 
 import numpy as np
 import os.path
@@ -38,6 +39,7 @@ MAX_QUALITY = 95
 ROUND_DECIMALS = 3
 # Indent 2 spaces in JSON files
 JSON_INDENT = 2
+EXIT_CODE = -1
 # Define a key value rotation for the 3 axis
 FULL_ROTATION = "full"
 # Value for random rotation
@@ -254,6 +256,8 @@ def main():
     with open(MAPS_FILENAME, 'r') as f:
         cities = json.load(f)
     option = int(input(utils.menu_str(cities))) - 1
+    if option == EXIT_CODE:
+        sys.exit("You selected to exit the program")
     chosen_option = cities[option].lower()
 
     timer = utils.Timer()
@@ -340,7 +344,7 @@ def main():
         )
     # Create the texture for the surface
     ground_img_path = f"assets/{chosen_option}/{GROUND_TEXTURE}"
-    if os.path.isfile(ground_img_path):
+    if os.path.isfile(ground_img_path) and road_map is not None:
         ground_img = Image.open(ground_img_path)
         ground_texture = np.asarray(ground_img)
         surface_texture = paint_surface(road_map, road_color, ground_texture)
