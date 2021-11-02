@@ -47,7 +47,7 @@ show.
 
 ### Create input data
 
-First create a new folder inside assets with the name of your map. Then you 
+First create a new folder inside *assets* with the name of your map. Then you 
 will need to create the following files inside your map's folder:
 
 - config.json
@@ -55,7 +55,7 @@ will need to create the following files inside your map's folder:
 - surface.png
 - ecotopes.json
 
-Let's see what each other means
+Let's see what each of them means:
 
 #### Config
 
@@ -72,12 +72,17 @@ You will need a config.json file that will have a format like this:
 }
 ```
 
-maxHeight is the maximum height that your map will have in world units.
+**maxHeight** is the maximum height that your map will have in world units.
 This is the height that would be assigned for a pixel in the height map that 
-has maximum value (255). densityMapPixelSize and heightMapPixelSize are how 
-long a side of a pixel in the density and height map are in world units. 
-roadColor is the RGB color that a road would have if one is given, and 
-groundColor and darkColor are optional and are only used for creating a texture 
+has maximum value (255). 
+
+**densityMapPixelSize** and **heightMapPixelSize** are 
+how long a side of a pixel in the density and height map are in world units. 
+
+**roadColor** is the RGB color that a road would have if one is given 
+(through a road_map.png), 
+**groundColor** and **darkColor** are optional and are only used for creating a 
+texture 
 for the terrain if the *create_tex_script* is used.
 
 ####  Height Map
@@ -157,7 +162,7 @@ In the example there is one ecotope called **forest** which has assets like
 trees and rocks, and then **houses** which has one type of house and rocks.
 
 The field assetId is the ID of the asset refered to. One must define assets with
-their IDs in an *assets.json* file inside the js folder of the project root. 
+their IDs in an *assets.json* file inside the *js* folder of the project root. 
 Here is an example of that file:
 
 ```json
@@ -169,40 +174,43 @@ Here is an example of that file:
 ]
 ```
 
-The idea is that assets are separated from individual maps.
+The *assets.json* file is in the *js* folder because assets are independents 
+of maps, and they can be reused in different maps.
 
-Ecotopes have a priority meaning that the ones with lower value are placed first
-(it's more like an order), so if a tree is placed first then there won't be 
-any house placed in the same spot. They also have a footprint which is the 
-length of the side of a squared region in which assets are placed. Then data,
+Ecotopes have a **priority** meaning that the ones with lower value are placed 
+first (it's more like an order), so if a tree is placed first then there 
+won't be any house placed in the same spot. They also have a **footprint** 
+which is the 
+length of the side of a squared region in which assets are placed. Then 
+**data**,
 defines the assets associated with each ecotope and the probability they 
 have. That means for example, that if a forest has a probability of 0.7 for 
 trees and 0.3 for rocks, on average you could expect that around 70% of the 
 places assigned to forest will have a tree on them and 30% a rock.
 
-The field for allowOffset is a float value which means that the asset will 
-be placed with a random offset not greater than that value, similarly to 
-allowScale. In the case of allowRotation, the value given is the maximum 
-value for a random rotation in the up axis (y), but you can also give the 
-value *"full"* meaning that it will be rotated randomly in all 3 axis. If 
-an asset doesn't have allowRotation defined and there is a road, it will be 
+The field **allowOffset** is a float value that allows a random offset not 
+greater than the given value, when placing assets, similarly with 
+**allowScale**. In the case of **allowRotation**, the value given is the 
+maximum value for a random rotation in the up axis (y), but you can also give
+the value *"full"* meaning that it will be rotated randomly in all 3 axis. If 
+an asset doesn't have **allowRotation** defined and there is a road, it will be 
 rotated to face the nearest road, if there isn't any road, it will have 0 
 rotation.
 
 #### Density Maps
 
 Each ecotope will need a density map, with the format
-<ecotope_name>_density_map.png which is a grayscale image that 
+*<ecotope_name>_density_map.png* which is a grayscale image that 
 associates how densely populated is each area of the map by each ecotope. So 
 for example, the forest area would have high values in the
-forest_density_map.png, but only black pixels in houses_density_map.png. 
+*forest_density_map.png*, but only black pixels in *houses_density_map.png*. 
 Procedural Placement uses that information to decide which assets to place 
 and how frequently.
 
 **All your density maps have to be of the same size in
-pixels and make sure that your densityMapPixelSize * the size of your 
-density map image is the same as heightMapPixelSize * the size of your height
-map image**
+pixels and make sure that your densityMapPixelSize multiplied by the size in 
+pixels is the same as the heightMapPixelSize multiplied by the size in 
+pixels of the height map (meaning they cover the same area) **
 
 ### Run Procedural Placement script
 
@@ -212,14 +220,14 @@ the folder where your map is stored. So for example, if your current
 *maps.json* file looks like this:
 
 ```json
-["schehem", "jerusalem"]
+["shechem", "jerusalem"]
 ```
 
 And you want to add a knew map called *samaria*, then update the file to 
 look like this:
 
 ```json
-["schehem", "jerusalem", "samaria"]
+["shechem", "jerusalem", "samaria"]
 ```
 
 After that, you need to run:
@@ -234,15 +242,16 @@ new files inside the map's folder like placement maps for each ecotope and a
 
 To be able to view the newly generated map, copy one of the other map's 
 folder, but the one in the project root, not in the *assets* folder. Then 
-rename it to have the name of your new map and modify the index.html inside 
-so that the *title* has the name of your new map.
+rename it to have the name of your new map and modify the *index.html* that is 
+inside so that the **title** has the name of your new map.
 
 ### (Optional) Adding more 3D assets
 
 If you want to add new 3D assets for your project, just copy them inside the 
 *assets* folder and modify the *assets.json* file inside the *js* 
 folder to define the new assets, including ID, name and filepath. Notice 
-that **they have to be in glTF format**.
+that **they have to be in glTF format (since the JS script uses GLTFLoader 
+from three.js)**.
 
 ## Dependencies
 
