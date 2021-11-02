@@ -2,6 +2,7 @@
   "maxHeight": 50,
   "densityMapPixelSize": 8,
   "heightMapPixelSize": 1,
+  "mapSize": 320,
   "roadColor": [105, 96, 70],
   "groundColor": [29, 60, 9],
   "darkColor": [88, 87, 38]

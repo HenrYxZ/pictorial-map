@@ -2,7 +2,7 @@ import * as THREE from 'https://cdn.skypack.dev/three@0.125';
 import { OrbitControls } from 'https://cdn.skypack.dev/three@0.125/examples/jsm/controls/OrbitControls.js';
 import { GLTFLoader } from 'https://cdn.skypack.dev/three@0.125/examples/jsm/loaders/GLTFLoader.js';
 import { GUI } from 'https://cdn.skypack.dev/three@0.125/examples/jsm/libs/dat.gui.module.js';
-// import { Water } from 'https://cdn.skypack.dev/three@0.125/examples/jsm/objects/Water.js';
+import { Water } from 'https://cdn.skypack.dev/three@0.125/examples/jsm/objects/Water.js';
 import { Sky } from 'https://cdn.skypack.dev/three@0.125/examples/jsm/objects/Sky.js';
 
 // Local Imports
@@ -11,8 +11,6 @@ import addSurface from './surface.js';
 
 
 const gltfLoader = new GLTFLoader();
-const MAP_WIDTH = 320;
-const MAP_HEIGHT = 320;
 const SHADOW_MAP_SIZE = 8192;
 
 
@@ -44,26 +42,30 @@ async function loadAssets() {
   return assets;
 }
 
-/* async function loadConfig(mapName) {
+async function loadConfig(mapName) {
   const configResponse = await fetch('../assets/' + mapName + '/config.json');
   const config = await configResponse.json();
   return config;
-} */
+}
 
 
 export async function main(mapName) {
+  const config = await loadConfig(mapName);
+  const mapSize = config.mapSize;
   const canvas = document.querySelector('#c');
-  // const renderer = new THREE.WebGLRenderer({
-  //   canvas, antialias: true
-  // });
+  /* const renderer = new THREE.WebGLRenderer({
+    canvas, antialias: true
+  }); */
   const renderer = new THREE.WebGLRenderer({
     canvas, antialias: true, alpha: true
   });
   renderer.setPixelRatio( window.devicePixelRatio );
   renderer.setSize( window.innerWidth, window.innerHeight );
+  // renderer.outputEncoding = THREE.LinearEncoding;
   renderer.outputEncoding = THREE.sRGBEncoding;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 0.5;
+  // renderer.toneMapping = THREE.NoToneMapping;
   renderer.shadowMap.enabled = true;
   // to antialias the shadow
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -72,7 +74,6 @@ export async function main(mapName) {
   const height = canvas.clientHeight;
   const aspectRatio = width / height;
   const skyCam = new THREE.PerspectiveCamera(30, width / height, 1000, 10000);
- //  const config = await loadConfig(mapName);
 
   // Set Camera
   const size = 150;
@@ -86,7 +87,7 @@ export async function main(mapName) {
     near,
     far
   );
-  camera.position.set(MAP_WIDTH, MAP_HEIGHT, MAP_HEIGHT);
+  camera.position.set(mapSize, mapSize, mapSize);
 
   // Set Controls
   const controls = new OrbitControls(camera, canvas);
@@ -95,18 +96,10 @@ export async function main(mapName) {
 
   // Set Scene
   const scene = new THREE.Scene();
-  // scene.background = new THREE.Color('black');
   scene.background = null;
   const skyScene = new THREE.Scene();
   // Add Sky object
   let sky, sun;
-  // skyScene.background = skyTexture;
-  // Add Sky Sphere
-  // const skyMat = new THREE.MeshBasicMaterial({map: skyTexture});
-  // skyMat.side = THREE.DoubleSide;
-  // const skyGeo = new THREE.SphereGeometry(600, 60, 40);
-  // const sky = new THREE.Mesh(skyGeo, skyMat);
-  // scene.add(sky);
 
   // Add Surface
   await addSurface(mapName, scene);
@@ -119,10 +112,10 @@ export async function main(mapName) {
   light.position.set(30, 100, -15);
   scene.add(light);
   scene.add(light.target);
-  light.shadow.camera.left = -MAP_WIDTH / 2;
-  light.shadow.camera.right = MAP_WIDTH;
-  light.shadow.camera.bottom = -MAP_HEIGHT / 2;
-  light.shadow.camera.top = MAP_HEIGHT / 2;
+  light.shadow.camera.left = -mapSize / 2;
+  light.shadow.camera.right = mapSize;
+  light.shadow.camera.bottom = -mapSize / 2;
+  light.shadow.camera.top = mapSize / 2;
   light.shadow.camera.updateProjectionMatrix();
   // Change shadow map size
   light.shadow.mapSize.width = SHADOW_MAP_SIZE;
@@ -132,12 +125,11 @@ export async function main(mapName) {
   const ambient_light = new THREE.AmbientLight(0x78756d); // soft white light
   scene.add(ambient_light);
 
-/*   // Add water
+  // Add water
   const waterHeight = config.waterHeight;
   let water = null;
-  debugger;
   if (waterHeight !== undefined) {
-    const waterGeometry = new THREE.PlaneGeometry(MAP_WIDTH, MAP_HEIGHT);
+    const waterGeometry = new THREE.PlaneGeometry(mapSize, mapSize);
 		water = new Water(
 			waterGeometry,
 			{
@@ -159,9 +151,8 @@ export async function main(mapName) {
 
 		water.rotation.x = - Math.PI / 2;
     water.position.y = waterHeight;
-    debugger;
 		scene.add(water);
-  } */
+  }
 
   // Load assets
   const assets = await loadAssets();
@@ -280,10 +271,10 @@ export async function main(mapName) {
     camera.right = aspect * size / 2;
     camera.updateProjectionMatrix();
 
-    /* // animate water
+    // animate water
     if (waterHeight !== undefined) {
       water.material.uniforms['time'].value += 1.0 / 60.0;
-    } */
+    }
     // skyCam.position.x = camera.position.x;
     // skyCam.position.z = camera.position.z;
     skyCam.position.copy(camera.position);
