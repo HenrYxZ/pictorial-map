@@ -1,0 +1,14 @@
+[
+  {"id": 1, "name": "square house", "filepath": "../assets/square.glb"},
+  {"id": 2, "name": "tree", "filepath": "../assets/tree.glb"},
+  {"id": 3, "name": "rock", "filepath": "../assets/rock.glb"},
+  {"id": 4, "name": "tall house", "filepath": "../assets/tall.glb"},
+  {"id": 5, "name": "shoe house", "filepath": "../assets/shoe.glb"},
+  {"id": 6, "name": "shoe box house 1", "filepath": "../assets/shoe_box1.glb"},
+  {"id":  7, "name":  "square house 2", "filepath": "../assets/square2.glb"},
+  {"id": 8, "name": "tall house 2", "filepath": "../assets/tall2.glb"},
+  {"id": 9, "name": "shoe house 1", "filepath": "../assets/shoe1.glb"},
+  {"id": 10, "name": "shoe box house 2", "filepath": "../assets/shoe_box2.glb"},
+  {"id": 11, "name": "temple", "filepath": "../assets/temple.glb"},
+  {"id": 12, "name":  "joshua stone", "filepath": "../assets/joshua.glb"}
+]

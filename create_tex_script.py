@@ -6,7 +6,7 @@ import utils
 
 CONFIG_FILENAME = "config.json"
 MAPS_FILENAME = "maps.json"
-SIZE = 320
+SIZE = 1280
 
 
 def main():

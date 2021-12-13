@@ -1,0 +1,8 @@
+{
+  "maxHeight": 83,
+  "densityMapPixelSize": 5,
+  "heightMapPixelSize": 1,
+  "roadColor": [105, 96, 70],
+  "groundColor": [29, 60, 9],
+  "darkColor": [88, 87, 38]
+}

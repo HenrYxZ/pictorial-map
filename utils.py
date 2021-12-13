@@ -52,6 +52,9 @@ def degrees2radians(degrees):
     return (degrees / 360) * 2 * np.pi
 
 
+def radians2degrees(radians):
+    return (radians / (2 * np.pi)) * 360
+
 def normalize_color(color):
     return color / MAX_COLOR
 
@@ -175,3 +178,8 @@ class Point:
             'y': float(np.round(self.y, 3)),
             'z': float(np.round(self.z, 3))
         }
+
+    @staticmethod
+    def dict_to_arr(point_dict):
+        arr = np.array([point_dict['x'], point_dict['y'], point_dict['z']])
+        return arr

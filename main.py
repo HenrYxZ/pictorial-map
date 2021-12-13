@@ -7,6 +7,7 @@ import os.path
 from PIL import Image
 
 # Local modules
+from constants import FULL_ROTATION, RANDOM_ROTATION
 import dithering
 import roads
 from utils import COLOR_CHANNELS
@@ -40,13 +41,11 @@ ROUND_DECIMALS = 3
 # Indent 2 spaces in JSON files
 JSON_INDENT = 2
 EXIT_CODE = -1
-# Define a key value rotation for the 3 axis
-FULL_ROTATION = "full"
-# Value for random rotation
-RANDOM_ROTATION = "random"
 rng = np.random.default_rng()
 chosen_option = "shechem"
 config = {}
+# Orientation sample size
+ORIENT_SAMPLE_SIZE = 5
 
 
 # noinspection PyTypeChecker
@@ -146,21 +145,52 @@ def get_height(x, z, height_map):
     return height
 
 
-def get_orientation(x, z, orient_map):
-    h, w, _ = orient_map.shape
+def get_min_dist(dist_map, i, j):
+    min_i = i
+    min_j = j
+    min_sq_dist = 2 * (ORIENT_SAMPLE_SIZE ** 2)
+    min_dist = MAX_COLOR
+    h, w = dist_map.shape
+    # Case out of map
+    if not 0 <= i < w or not 0 <= j < h:
+        return i, j
+    for b in range(ORIENT_SAMPLE_SIZE):
+        current_j = j - ORIENT_SAMPLE_SIZE // 2 + b
+        if not 0 <= current_j < h:
+            continue
+        for a in range(ORIENT_SAMPLE_SIZE):
+            current_i = i - ORIENT_SAMPLE_SIZE // 2 + a
+            if not 0 <= current_i < w:
+                continue
+            current_sq_dist = (i - current_i) ** 2 + (j - current_j) ** 2
+            current_dist = dist_map[current_j][current_i]
+            same_dist_less_eucl = (
+                current_dist == min_dist and current_sq_dist < min_sq_dist
+            )
+            if current_dist < min_dist or same_dist_less_eucl:
+                min_i = current_i
+                min_j = current_j
+                min_dist = current_dist
+                min_sq_dist = current_sq_dist
+    return min_i, min_j
+
+
+def get_orientation(x, z, dist_map):
+    h, w = dist_map.shape
     height_map_pixel_size = config['heightMapPixelSize']
     u = x / (w * height_map_pixel_size) + 0.5
     v = -z / (h * height_map_pixel_size) + 0.5
     i = int(round(u * w))
     j = int(round(v * h))
-    orient_pixel = orient_map[j][i]
-    dx = (orient_pixel[0] - MAX_COLOR / 2) * 2
-    dy = (orient_pixel[1] - MAX_COLOR / 2) * 2
+    min_dist_pixel = get_min_dist(dist_map, i, j)
+    dx = min_dist_pixel[0] - i
+    dy = j - min_dist_pixel[1]
     orient_unit_vector = utils.normalize([dx, dy])
     # Get the angle of rotation in the Z axis
     rotation = np.arccos(orient_unit_vector[0])
-    if orient_pixel[1] < 0:
-        rotation *= -1
+    # If y component of orient vector is negative, rotate negative angle
+    if orient_unit_vector[1] < 0:
+        rotation = -rotation
     return rotation
 
 
@@ -173,7 +203,7 @@ def fix_rotation(rotation, asset_id):
         return rotation
 
 
-def place_asset(asset, i, j, w, h, footprint, height_map, orient_map=None):
+def place_asset(asset, i, j, w, h, footprint, height_map, dist_map=None):
     # Position
     if 'allowOffset' in asset:
         position_offset = (-0.5 + rng.random(2)) * asset['allowOffset']
@@ -200,8 +230,8 @@ def place_asset(asset, i, j, w, h, footprint, height_map, orient_map=None):
         else:
             rotation = rng.random() * asset['allowRotation']
     else:
-        if orient_map is not None:
-            rotation = get_orientation(x, z, orient_map)
+        if dist_map is not None:
+            rotation = get_orientation(x, z, dist_map)
         else:
             rotation = 0
     # REMOVE THIS LINE (IT'S ONLY FOR THIS ASSETS)
@@ -217,7 +247,7 @@ def place_asset(asset, i, j, w, h, footprint, height_map, orient_map=None):
     return placement_dict
 
 
-def procedurally_place(placement_map, ecotope, height_map, orient_map=None):
+def procedurally_place(placement_map, ecotope, height_map, dist_map=None):
     pixel_size = config['densityMapPixelSize']
     ratio = int(pixel_size // ecotope['footprint'])
     if ratio > 1:
@@ -242,7 +272,7 @@ def procedurally_place(placement_map, ecotope, height_map, orient_map=None):
                     if p <= accumulated_prob:
                         placement_dict = place_asset(
                             asset, i, j, w, h, footprint,
-                            normalized_height_map, orient_map
+                            normalized_height_map, dist_map
                         )
                         placement_json.append(placement_dict)
                         break
@@ -290,7 +320,7 @@ def main():
     new_size = (density_map_size, density_map_size)
     if not os.path.isfile(road_map_path):
         road_map = None
-        orient_map = None
+        dist_map = None
     else:
         utils.exist_or_create(f'{DEBUG_DIR}')
         utils.exist_or_create(f'{DEBUG_DIR}/{chosen_option}')
@@ -298,12 +328,6 @@ def main():
         dist_map = roads.create_dist_map(road_map)
         dist_map_img = Image.fromarray(dist_map)
         dist_map_img.save(f'{DEBUG_DIR}/{chosen_option}/{DIST_MAP_FILENAME}')
-        float_dist_map = np.array(dist_map, dtype=float)
-        orient_map = roads.create_orient_map(float_dist_map, chosen_option)
-        orient_map_img = Image.fromarray(orient_map)
-        orient_map_img.save(
-            f'{DEBUG_DIR}/{chosen_option}/{ORIENT_MAP_FILENAME}'
-        )
     # Load ecotopes
     ecotopes_path = f"assets/{chosen_option}/{ECOTOPES_FILENAME}"
     with open(ecotopes_path, 'r') as f:
@@ -340,7 +364,7 @@ def main():
         placement_map = discretize_density(density_map, ecotope_name)
         # Procedurally place
         placement_json += procedurally_place(
-            placement_map, ecotope, height_map, orient_map
+            placement_map, ecotope, height_map, dist_map
         )
     # Create the texture for the surface
     ground_img_path = f"assets/{chosen_option}/{GROUND_TEXTURE}"

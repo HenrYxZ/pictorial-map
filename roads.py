@@ -9,17 +9,15 @@ RGB_CHANNELS = 3
 def high_pass(arr, num):
     """
     Create a new 2D array iterating the input and for each element if it is
-    non-zero it will be num, else 0.
+    greater than the threshold it will be num, else 0.
     Args:
         arr(ndarray): Input array
-        num(int): Number to leave in each cell after that passes the
-            high pass.
+        num(int): Number to leave in each cell after that passes the high pass
     Returns:
         list: 2D array with a high pass filter
     """
-    new_arr = [
-        [num if element else 0 for element in row] for row in arr
-    ]
+    threshold = MAX_COLOR / 20
+    new_arr = np.where(arr > threshold, num, 0)
     return new_arr
 
 
@@ -86,74 +84,3 @@ def create_dist_map(road_map):
     final_arr = np.array(high_pass(final_arr, MAX_COLOR), dtype=np.uint8)
     final_arr = flood(final_arr)
     return final_arr
-
-
-def create_derivative(
-        img_arr, get_previous, get_next, distance=DEFAULT_COMPARISON_DISTANCE
-):
-    """
-    Create a derivative array from an image
-    Args:
-        img_arr(ndarray): Input image array
-        get_previous(function): Function to obtain the previous pixel in the
-            form f(img, i, j)
-        get_next(function): Function to obtain the next pixel in the
-            form f(img, i, j)
-        distance(int): Distance in pixels between the previous and the next
-    Returns:
-         ndarray: An image array with the derivative
-    """
-    h, w = img_arr.shape
-    derivative = np.zeros([h, w])
-    for count in range(h * w):
-        i = count % (w - distance)
-        j = (count // w) % (h - distance)
-        previous_pixel = get_previous(img_arr, i, j, distance)
-        next_pixel = get_next(img_arr, i, j, distance)
-        difference = (next_pixel - previous_pixel) * 10
-        derivative[j][i] = int(difference + MAX_COLOR / 2)
-    return derivative
-
-
-def create_dx(img_arr):
-    def get_previous(x, i, j, distance): return x[j][i - distance // 2]
-    def get_next(x, i, j, distance): return x[j][i + distance // 2]
-    dx = create_derivative(img_arr, get_previous, get_next)
-    return dx
-
-
-def create_dy(img_arr):
-    def get_previous(x, i, j, distance): return x[j + distance // 2][i]
-    def get_next(x, i, j, distance): return x[j - distance // 2][i]
-    dy = create_derivative(img_arr, get_previous, get_next)
-    return dy
-
-
-def create_orient_map(dist_map, map_name):
-    """
-    Create a numpy array where each element is a RGB pixel. R means
-    difference in x, G means difference in y and B is irrelevant.
-
-    Args:
-        dist_map(ndarray): 2D array where each element is the distance to the
-            nearest road. It has to be in type float!
-        map_name(str): Name of the map given for debugging
-    Returns:
-         ndarray: The orient map with dx in R, dy in G and MAX_COLOR // 2 in B
-    """
-    h, w = dist_map.shape
-    orient_map = np.zeros([h, w, RGB_CHANNELS], dtype=np.uint8)
-    # create dx & dy
-    dx = create_dx(dist_map)
-    dy = create_dy(dist_map)
-    dx_img = Image.fromarray(np.array(dx, dtype=np.uint8))
-    dy_img = Image.fromarray(np.array(dy, dtype=np.uint8))
-    dx_img.save(f'debug/{map_name}/dx.png')
-    dy_img.save(f'debug/{map_name}/dy.png')
-    for i in range(h * w):
-        row = i // w
-        col = i - row * w
-        orient_map[row][col][0] = dx[row][col]
-        orient_map[row][col][1] = dy[row][col]
-        orient_map[row][col][2] = MAX_COLOR
-    return orient_map

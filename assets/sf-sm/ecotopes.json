@@ -1,0 +1,221 @@
+[
+  {
+    "name": "dark_green",
+    "priority": 1,
+    "footprint": 3,
+    "data": [
+      {
+        "assetId": 2,
+        "probability": 1,
+        "allowOffset": 0.5,
+        "allowScale": 0.25
+      }
+    ]
+  },
+  {
+    "name": "green_low",
+    "priority": 2,
+    "footprint": 3,
+    "data": [
+      {
+        "assetId": 2,
+        "probability": 0.7,
+        "allowOffset": 0.5,
+        "allowScale": 0.25
+      },
+      {
+        "assetId": 3,
+        "probability": 0.3,
+        "allowOffset": 1,
+        "allowScale": 3,
+        "allowRotation": "full"
+      }
+    ]
+  },
+  {
+    "name": "downtown",
+    "priority": 3,
+    "footprint": 8,
+    "data": [
+      {
+        "assetId": 4,
+        "probability": 0.25,
+        "allowOffset": 0.25,
+        "allowScale": 0.2,
+        "allowRotation": "random"
+      },
+      {
+        "assetId": 8,
+        "probability": 0.25,
+        "allowOffset": 0.25,
+        "allowScale": 0.2,
+        "allowRotation": "random"
+      },
+      {
+        "assetId": 2,
+        "probability": 0.05,
+        "allowOffset": 1.5,
+        "allowScale": 0.3
+      },
+      {
+        "assetId": 3,
+        "probability": 0.05,
+        "allowOffset": 2,
+        "allowScale": 6,
+        "allowRotation": "full"
+      },
+      {
+        "assetId": 5,
+        "probability": 0.1,
+        "allowOffset": 0.05,
+        "allowScale": 0.2,
+        "allowRotation": "random"
+      },
+      {
+        "assetId": 9,
+        "probability": 0.1,
+        "allowOffset": 0.05,
+        "allowScale": 0.2,
+        "allowRotation": "random"
+      },
+      {
+        "assetId": 1,
+        "probability": 0.1,
+        "allowOffset": 0.25,
+        "allowScale": 0.2,
+        "allowRotation": "random"
+      },
+      {
+        "assetId": 7,
+        "probability": 0.1,
+        "allowOffset": 0.25,
+        "allowScale": 0.2,
+        "allowRotation": "random"
+      }
+    ]
+  },
+  {
+    "name": "suburban",
+    "priority": 4,
+    "footprint": 8,
+    "data": [
+      {
+        "assetId": 6,
+        "probability": 0.25,
+        "allowOffset": 0.25,
+        "allowScale": 0.2,
+        "allowRotation": "random"
+      },
+      {
+        "assetId": 10,
+        "probability": 0.25,
+        "allowOffset": 0.25,
+        "allowScale": 0.2,
+        "allowRotation": "random"
+      },
+      {
+        "assetId": 5,
+        "probability": 0.05,
+        "allowOffset": 0.05,
+        "allowScale": 0.2,
+        "allowRotation": "random"
+      },
+      {
+        "assetId": 9,
+        "probability": 0.05,
+        "allowOffset": 0.05,
+        "allowScale": 0.2,
+        "allowRotation": "random"
+      },
+      {
+        "assetId": 1,
+        "probability": 0.1,
+        "allowOffset": 0.25,
+        "allowScale": 0.2,
+        "allowRotation": "random"
+      },
+      {
+        "assetId": 7,
+        "probability": 0.1,
+        "allowOffset": 0.25,
+        "allowScale": 0.2,
+        "allowRotation": "random"
+      },
+      {
+        "assetId": 2,
+        "probability": 0.1,
+        "allowOffset": 1.5,
+        "allowScale": 0.3
+      },
+      {
+        "assetId": 3,
+        "probability": 0.1,
+        "allowOffset": 2,
+        "allowScale": 6,
+        "allowRotation": "full"
+      }
+    ]
+  },
+  {
+    "name": "medium",
+    "priority": 5,
+    "footprint": 8,
+    "data": [
+      {
+        "assetId": 1,
+        "probability": 0.25,
+        "allowOffset": 0.25,
+        "allowScale": 0.2,
+        "allowRotation": "random"
+      },
+      {
+        "assetId": 7,
+        "probability": 0.25,
+        "allowOffset": 0.25,
+        "allowScale": 0.2,
+        "allowRotation": "random"
+      },
+      {
+        "assetId": 5,
+        "probability": 0.1,
+        "allowOffset": 0.05,
+        "allowScale": 0.2,
+        "allowRotation": "random"
+      },
+      {
+        "assetId": 9,
+        "probability": 0.1,
+        "allowOffset": 0.05,
+        "allowScale": 0.2,
+        "allowRotation": "random"
+      },
+      {
+        "assetId": 4,
+        "probability": 0.1,
+        "allowOffset": 0.25,
+        "allowScale": 0.2,
+        "allowRotation": "random"
+      },
+      {
+        "assetId": 8,
+        "probability": 0.1,
+        "allowOffset": 0.25,
+        "allowScale": 0.2,
+        "allowRotation": "random"
+      },
+      {
+        "assetId": 2,
+        "probability": 0.05,
+        "allowOffset": 1.5,
+        "allowScale": 0.3
+      },
+      {
+        "assetId": 3,
+        "probability": 0.05,
+        "allowOffset": 2,
+        "allowScale": 6,
+        "allowRotation": "full"
+      }
+    ]
+  }
+]
