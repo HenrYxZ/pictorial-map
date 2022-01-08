@@ -55,6 +55,7 @@ def degrees2radians(degrees):
 def radians2degrees(radians):
     return (radians / (2 * np.pi)) * 360
 
+
 def normalize_color(color):
     return color / MAX_COLOR
 
@@ -66,6 +67,14 @@ def blerp(img_arr, u, v):
         height, width = img_arr.shape
     x = u * width
     y = v * height
+    return sample_2d(x, y, img_arr)
+
+
+def sample_2d(x, y, img_arr):
+    if len(img_arr.shape) == 3:
+        height, width, _ = img_arr.shape
+    else:
+        height, width = img_arr.shape
     # Flip y value to go from top to bottom
     y = height - y
     # Interpolate values of pixel neighborhood of x and y
@@ -133,7 +142,7 @@ def create_texture_from_noise(
     Args:
         color(ndarray): RGB color
         size(int): length of one side in pixels
-        noise_img(Image): Noise image
+        noise_img_path(str): Path for the noise image
         dark_color(ndarray): RGB for dark color to interpolate
 
     Returns:
@@ -147,6 +156,14 @@ def create_texture_from_noise(
     final_array = np.array(combined_array, dtype=np.uint8)
     output_img = Image.fromarray(final_array)
     return output_img
+
+
+def create_light_and_dark_image(img_path):
+    img = Image.open(img_path)
+    dark_img = img.point(lambda p: p * 0.6)
+    light_img = img.point(lambda p: p * 1.3)
+    dark_img.save('C0.png')
+    light_img.save('C1.png')
 
 
 class Timer:

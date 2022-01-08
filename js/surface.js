@@ -119,13 +119,11 @@ export default async function addSurface(mapName, scene) {
   geom.computeVertexNormals();
   const textureLoader = new THREE.TextureLoader();
   const texture = textureLoader.load('../assets/' + mapName + '/surface.png');
-  // const normalMap = textureLoader.load(
-  //   '../assets/' + mapName + '/normal_map.png'
-  // );
-  // const normalMapType = THREE.ObjectSpaceNormalMap;
-  // const normalScale = (1, -1);
-  const material = new THREE.MeshPhongMaterial({
-    map: texture, side: THREE.DoubleSide
+  const normalMap = textureLoader.load(
+    '../assets/' + mapName + '/normal_map.png'
+  )
+  const material = new THREE.MeshStandardMaterial({
+    map: texture, side: THREE.DoubleSide, normalMap
   });
   const mesh = new THREE.Mesh(geom, material);
   mesh.receiveShadow = true;

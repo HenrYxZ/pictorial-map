@@ -35,3 +35,7 @@ class App:
         # surface_tex_path = f"{ASSETS_DIR}/{chosen_option}/{SURFACE_TEXTURE}"
         surface_tex_path = f"2d/{SURFACE_TEXTURE}"
         self.surface_texture = pyglet.image.load(surface_tex_path)
+
+        # Load height map
+        height_map_path = f"2d/{HEIGHT_MAP_FILENAME}"
+        self.height_map = pyglet.image.load(height_map_path)
