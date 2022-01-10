@@ -1,4 +1,5 @@
 from PIL import Image
+from progress.bar import Bar
 import numpy as np
 import os
 import os.path
@@ -60,7 +61,11 @@ def normalize_color(color):
     return color / MAX_COLOR
 
 
-def blerp(img_arr, u, v):
+def lerp(a, b, t):
+    return t * a  + (1 - t) * b
+
+
+def blerp(u, v, img_arr):
     if len(img_arr.shape) == 3:
         height, width, _ = img_arr.shape
     else:
@@ -200,3 +205,8 @@ class Point:
     def dict_to_arr(point_dict):
         arr = np.array([point_dict['x'], point_dict['y'], point_dict['z']])
         return arr
+
+
+class ProgressBar(Bar):
+    suffix = '%(percent)d%% [%(elapsed_td)s / %(eta_td)s]'
+    check_tty = False

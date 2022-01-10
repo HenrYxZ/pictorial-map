@@ -1,32 +1,57 @@
 import numpy as np
+from PIL import Image
 import json
 
 # Local modules
+from app import App
+from constants import *
+from surface import create_surface_tex
 import utils
 
-CONFIG_FILENAME = "config.json"
-MAPS_FILENAME = "maps.json"
-SIZE = 1280
+
+def main(is_2d=True):
+    app = App()
+    surface_arr, normal_arr = create_surface_tex(app, is_2d=is_2d)
+    surface_img = Image.fromarray(surface_arr)
+    surface_img.save("surface.png")
+    normal_map = Image.fromarray(normal_arr)
+    normal_map.save("normal_map.png")
 
 
-def main():
-    maps_path = f"js/maps.json"
-    with open(maps_path, 'r') as f:
-        cities = json.load(f)
-    option = int(input(utils.menu_str(cities))) - 1
-    city = cities[option]
-    config_path = f"assets/{city}/{CONFIG_FILENAME}"
-    with open(config_path, 'r') as f:
-        config = json.load(f)
-    color = np.array(config['groundColor'])
-    if config.get('darkColor'):
-        dark_color = np.array(config['darkColor'])
-    else:
-        dark_color = 0.8 * color
-    noise_path = "assets/perlin_noise.png"
-    img = utils.create_texture_from_noise(color, SIZE, noise_path, dark_color)
-    img.save(f'assets/{city}/ground.png')
+def create_water_map():
+    app = App()
+    water_height = app.config['waterHeight']
+    height_arr = np.array(app.height_map) / MAX_COLOR
+    height_arr = height_arr * app.config['maxHeight']
+    water_arr = height_arr <= water_height
+    water_img = Image.fromarray(water_arr)
+    water_img.save("water_map.png")
+
+
+def create_light_and_dark():
+    filename = "surface.png"
+    img = Image.open(filename)
+    img_arr = np.array(img)
+    light = np.asarray(img_arr * 1.3).clip(0, MAX_COLOR).astype(np.uint8)
+    light_img = Image.fromarray(light)
+    dark = np.asarray(img_arr * 0.7).clip(0, MAX_COLOR).astype(np.uint8)
+    dark_img = Image.fromarray(dark)
+    light_img.save("C1.png")
+    dark_img.save("C0.png")
 
 
 if __name__ == '__main__':
-    main()
+    menu_str = utils.menu_str([
+        "Surface 2D", "Surface 3D", "Water Map", "Light & Dark"
+    ])
+    option = int(input(menu_str))
+    if option == 1:
+        main()
+    elif option == 2:
+        main(is_2d=False)
+    elif option == 3:
+        create_water_map()
+    elif option == 4:
+        create_light_and_dark()
+    else:
+        exit()

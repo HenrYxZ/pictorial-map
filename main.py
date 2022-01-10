@@ -140,7 +140,7 @@ def get_height(x, z, height_map):
     height_map_pixel_size = config['heightMapPixelSize']
     u = x / (w * height_map_pixel_size) + 0.5
     v = -z / (h * height_map_pixel_size) + 0.5
-    normalized_height = utils.blerp(height_map, u, v)
+    normalized_height = utils.blerp(u, v, height_map)
     height = normalized_height * max_height
     return height
 

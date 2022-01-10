@@ -1,10 +1,13 @@
 {
   "maxHeight": 70,
-  "waterHeight": 3,
+  "waterHeight": 2.6,
+  "sandHeight": 2.7,
   "densityMapPixelSize": 8,
   "heightMapPixelSize": 0.5,
   "mapSize": 640,
   "roadColor": [105, 96, 70],
   "groundColor": [29, 60, 9],
-  "darkColor": [88, 87, 38]
+  "darkColor": [88, 87, 38],
+  "waterColor": [5, 17, 156],
+  "sandColor": [110, 80, 39]
 }
