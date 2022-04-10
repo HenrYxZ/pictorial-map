@@ -1,9 +1,7 @@
 import * as THREE from 'https://cdn.skypack.dev/three@0.125';
 import { OrbitControls } from 'https://cdn.skypack.dev/three@0.125/examples/jsm/controls/OrbitControls.js';
 import { GLTFLoader } from 'https://cdn.skypack.dev/three@0.125/examples/jsm/loaders/GLTFLoader.js';
-import { GUI } from 'https://cdn.skypack.dev/three@0.125/examples/jsm/libs/dat.gui.module.js';
 import { Water } from 'https://cdn.skypack.dev/three@0.125/examples/jsm/objects/Water.js';
-import { Sky } from 'https://cdn.skypack.dev/three@0.125/examples/jsm/objects/Sky.js';
 
 // Local Imports
 import Placer from './placement.js';
@@ -49,13 +47,10 @@ async function loadConfig(mapName) {
 }
 
 
-export async function main(mapName) {
+export async function main(mapName, skyTexture) {
   const config = await loadConfig(mapName);
   const mapSize = config.mapSize;
   const canvas = document.querySelector('#c');
-  /* const renderer = new THREE.WebGLRenderer({
-    canvas, antialias: true
-  }); */
   const renderer = new THREE.WebGLRenderer({
     canvas, antialias: true, alpha: true
   });
@@ -63,43 +58,28 @@ export async function main(mapName) {
   renderer.setSize( window.innerWidth, window.innerHeight );
   // renderer.outputEncoding = THREE.LinearEncoding;
   renderer.outputEncoding = THREE.sRGBEncoding;
-  renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 0.5;
+  // renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  // renderer.toneMappingExposure = 0.5;
   // renderer.toneMapping = THREE.NoToneMapping;
   renderer.shadowMap.enabled = true;
   // to antialias the shadow
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-  renderer.autoClear = false;
+  // renderer.autoClear = false;
   const width = canvas.clientWidth;
   const height = canvas.clientHeight;
-  const aspectRatio = width / height;
-  const skyCam = new THREE.PerspectiveCamera(30, width / height, 1000, 10000);
-
-  // Set Camera
-  const size = 150;
-  const near = 0.00001;
-  const far = 10000;
-  const camera = new THREE.OrthographicCamera(
-    -size * aspectRatio / 2,
-    size * aspectRatio / 2,
-    size / 2,
-    -size / 2,
-    near,
-    far
-  );
-  camera.position.set(mapSize, mapSize, mapSize);
+  const camera = new THREE.PerspectiveCamera(30, width / height, 0.1, 10000);
+  camera.position.z = mapSize;
+  camera.position.x = mapSize;
+  camera.position.y = mapSize;
 
   // Set Controls
-  const controls = new OrbitControls(camera, canvas);
+  const controls = new OrbitControls(camera, renderer.domElement);
   controls.target.set(0, 0, 0);
   controls.update();
 
   // Set Scene
   const scene = new THREE.Scene();
-  scene.background = null;
-  const skyScene = new THREE.Scene();
-  // Add Sky object
-  let sky, sun;
+  scene.background = skyTexture;
 
   // Add Surface
   await addSurface(mapName, scene);
@@ -165,85 +145,6 @@ export async function main(mapName) {
   const placement = await placementResponse.json();
   placer.usePlacement(placement);
 
-  // Initialize Sky
-  function initSky() {
-
-    // Add Sky
-    sky = new Sky();
-    sky.scale.setScalar( 4500 );
-    skyScene.add( sky );
-  
-    sun = new THREE.Vector3();
-  
-    /// GUI
-    const effectController = {
-      turbidity: 2.3,
-      rayleigh: 0.208,
-      mieCoefficient: 0.023,
-      mieDirectionalG: 0.128,
-      elevation: 23.2,
-      azimuth: 180,
-      exposure: renderer.toneMappingExposure
-    };
-  
-    function guiChanged() {
-  
-      const uniforms = sky.material.uniforms;
-      uniforms[ 'turbidity' ].value = effectController.turbidity;
-      uniforms[ 'rayleigh' ].value = effectController.rayleigh;
-      uniforms[ 'mieCoefficient' ].value = effectController.mieCoefficient;
-      uniforms[ 'mieDirectionalG' ].value = effectController.mieDirectionalG;
-  
-      const phi = THREE.MathUtils.degToRad(90 - effectController.elevation);
-      const theta = THREE.MathUtils.degToRad(effectController.azimuth);
-  
-      sun.setFromSphericalCoords(1, phi, theta);
-  
-      uniforms['sunPosition'].value.copy(sun);
-  
-      renderer.toneMappingExposure = effectController.exposure;
-      renderer.render(skyScene, skyCam);
-  
-    }
-  
-    const gui = new GUI();
-  
-    gui.add( effectController, 'turbidity', 0.0, 20.0, 0.1 ).onChange( guiChanged );
-    gui.add( effectController, 'rayleigh', 0.0, 4, 0.001 ).onChange( guiChanged );
-    gui.add( effectController, 'mieCoefficient', 0.0, 0.1, 0.001 ).onChange( guiChanged );
-    gui.add( effectController, 'mieDirectionalG', 0.0, 1, 0.001 ).onChange( guiChanged );
-    gui.add( effectController, 'elevation', 0, 90, 0.1 ).onChange( guiChanged );
-    gui.add( effectController, 'azimuth', - 180, 180, 0.1 ).onChange( guiChanged );
-    gui.add( effectController, 'exposure', 0, 1, 0.0001 ).onChange( guiChanged );
-  
-    guiChanged();
-
-    gui.close();
-  
-  }
-
-  // Set Scissor
-  function setScissorForElement(elem) {
-    const canvasRect = canvas.getBoundingClientRect();
-    const elemRect = elem.getBoundingClientRect();
-
-    // compute a canvas relative rectangle
-    const right = Math.min(elemRect.right, canvasRect.right) - canvasRect.left;
-    const left = Math.max(0, elemRect.left - canvasRect.left);
-    const bottom = Math.min(elemRect.bottom, canvasRect.bottom) - canvasRect.top;
-    const top = Math.max(0, elemRect.top - canvasRect.top);
-
-    const width = Math.min(canvasRect.width, right - left);
-    const height = Math.min(canvasRect.height, bottom - top);
-
-    // setup the scissor to only render to that part of the canvas
-    const positiveYUpBottom = canvasRect.height - bottom;
-    renderer.setScissor(left, positiveYUpBottom, width, height);
-    renderer.setViewport(left, positiveYUpBottom, width, height);
-
-    // return the aspect
-    return width / height;
-  }
 
   // Resize display
   function resizeRendererToDisplaySize(renderer) {
@@ -260,37 +161,18 @@ export async function main(mapName) {
   // Render function
   function render() {
     resizeRendererToDisplaySize(renderer)
-
-    // turn on the scissor
-    renderer.setScissorTest(true);
-
-    const aspect = setScissorForElement(canvas);
-
-    // update the camera for this aspect
-    camera.left = -aspect * size / 2;
-    camera.right = aspect * size / 2;
-    camera.updateProjectionMatrix();
-
+    
     // animate water
     if (waterHeight !== undefined) {
       water.material.uniforms['time'].value += 1.0 / 60.0;
     }
-    // skyCam.position.x = camera.position.x;
-    // skyCam.position.z = camera.position.z;
-    skyCam.position.copy(camera.position);
-    skyCam.lookAt(0, 0, 0);
 
-    renderer.clear();
-    renderer.render(skyScene, skyCam);
-    // renderer.render(scene, skyCam);
     renderer.render(scene, camera);
-
     requestAnimationFrame(render);
   }
 
   // Hide loading message
   document.getElementById("spinner").hidden = true;
-  initSky();
 
   requestAnimationFrame(render);
 }
@@ -303,4 +185,12 @@ if (url.slice(-1) == "/") {
   url = url.substring(0, url.length - 1)
 }
 const mapName = url.split("/").pop();
-main(mapName);
+const textureLoader = new THREE.TextureLoader();
+textureLoader.load(
+  '../assets/sky.png',
+  texture => {
+    texture.encoding = THREE.sRGBEncoding;
+		texture.mapping = THREE.EquirectangularReflectionMapping;
+    main(mapName, texture).catch(error => console.error(error));
+  }
+);
