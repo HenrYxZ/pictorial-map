@@ -4,11 +4,12 @@
 
 This repository contains a tool for creating and displaying 3D Pictorial Maps
 using Procedural techniques. It is divided in a Python script (backend) which
-runs Procedural Placement of assets using data as input. The input data are 
-ecotope definitions in JSON format, and image files for height maps and density
-maps for each ecotope. Then the frontend is a Javascript Web App that uses
-three.js. The frontend also works using data as input which are 3D models in
-glTF format, placement information and surface information given in JSON format.
+runs Procedural Placement of assets using data as input and generates output
+data representing the placement. The input data are ecotope definitions in JSON
+format, and image files for height maps and density maps for each ecotope. Then
+the frontend is a Javascript Web App that uses three.js. The frontend also works
+using data as input which are 3D models in glTF format, and placement and terrain 
+information given in JSON format.
 
 For a detailed explanation on the algorithm used, read the
 [paper](docs/paper.pdf)
@@ -33,8 +34,8 @@ Run `$ jekyll s` and then open your browser in `localhost:4000`.
 
 You can create your own new maps procedurally, and they will be available to see
 in the Web App. To create a new map there are some files that you will need 
-to create first that will be used as input for the Procedural Placement 
-script. After you run the script other new data will be generated that will be 
+to create first that will be used as input in the Procedural Placement 
+script. After you run the script new data will be generated that will be 
 used by the Web App. You will also need to copy an HTML page for your new map to
 show.
 
@@ -43,7 +44,7 @@ show.
 1. [Create input data](#create-input-data)
 2. [Run Procedural Placement script](#run-procedural-placement-script)
 3. [Create HTML page](#create-html-page)
-4. [(Optional) Adding more 3D assets](#optional-adding-more-3d-assets)
+4. [(Optional) Adding more 3D assets](#adding-more-3d-assets)
 
 ### Create input data
 
@@ -82,19 +83,27 @@ how long a side of a pixel in the density and height map are in world units.
 **roadColor** is the RGB color that a road would have if one is given 
 (through a road_map.png), 
 **groundColor** and **darkColor** are optional and are only used for creating a 
-texture 
-for the terrain if the *create_tex_script* is used.
+texture for the terrain if the *create_tex_script* is used. That script creates
+an image texture *surface.png* that can be used in the terrain.
 
 ####  Height Map
 
 You need a height map that will be a grayscale image. Each pixel will 
 represent the height of the terrain at the corresponding point in the map.
 
+![example of height map](docs/imgs/height_map.png)
+
+Example of a height map
+
 #### (Optional) Road Map
 
 This is a grayscale image where each pixel with value greater than 0 is part 
 of a road. The script won't place any assets in the roads, and assets 
 without the *allowRotation* will be oriented to face the nearest road.
+
+![example of road map](docs/imgs/road_map.png)
+
+Example of a road map
 
 ####  Surface
 
@@ -104,6 +113,10 @@ in the terrain, you can provide a *ground.png*, then the function
 *paint_surface* will paint the road into that texture and will create a new 
 *surface.png* for the map. Note that for that to work properly the textures 
 have to be of the same size.
+
+|![example of ground texture](docs/imgs/ground.png)| ![example of surface texture](docs/imgs/surface.png)    |
+|-----|-----|
+| Ground | Surface |
 
 ####  Ecotopes
 
@@ -210,7 +223,11 @@ and how frequently.
 **All your density maps have to be of the same size in
 pixels and make sure that your densityMapPixelSize multiplied by the size in 
 pixels is the same as the heightMapPixelSize multiplied by the size in 
-pixels of the height map (meaning they cover the same area) **
+pixels of the height map (meaning they cover the same area)**
+
+![density map](docs/imgs/medium_density_map.png)
+
+Example of a density map (size is 80x80 in this case)
 
 ### Run Procedural Placement script
 
@@ -245,7 +262,7 @@ folder, but the one in the project root, not in the *assets* folder. Then
 rename it to have the name of your new map and modify the *index.html* that is 
 inside so that the **title** has the name of your new map.
 
-### (Optional) Adding more 3D assets
+### Adding more 3D assets
 
 If you want to add new 3D assets for your project, just copy them inside the 
 *assets* folder and modify the *assets.json* file inside the *js* 
