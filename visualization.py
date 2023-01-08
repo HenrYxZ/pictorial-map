@@ -1,9 +1,14 @@
+import json
 import pyglet
-from pyglet.math import Mat4, Vec3
+from pyglet.math import Vec3
+import sys
 
 
 from camera import FPSCamera
+from constants import *
 from terrain import Terrain
+import utils
+
 
 batch = pyglet.graphics.Batch()
 
@@ -11,20 +16,31 @@ batch = pyglet.graphics.Batch()
 class Window(pyglet.window.Window):
     def __init__(self):
         super().__init__()
+        # Load map names
+        with open(MAPS_FILENAME, 'r') as f:
+            cities = json.load(f)
+        # option = int(input(utils.menu_str(cities))) - 1
+        option = 2
+        if option == EXIT_CODE:
+            sys.exit("You selected to exit the program")
+        chosen_option = cities[option].lower()
+
+        timer = utils.Timer()
+        timer.start()
+        # Load map config
+        config_path = f"assets/{chosen_option}/{CONFIG_FILENAME}"
+        with open(config_path, 'r') as f:
+            config = json.load(f)
         # Create terrain
-        self.terrain = Terrain(batch=batch)
+        self.terrain = Terrain(
+            size=config['mapSize'], max_height=config['maxHeight'], batch=batch
+        )
+        timer.stop()
+        print(f"Elapsed time generating terrain was {timer}")
 
     def on_draw(self):
         self.clear()
         batch.draw()
-
-    def on_resize(self, width, height):
-        self.viewport = (0, 0, *self.get_framebuffer_size())
-        # Change window projection
-        self.projection = Mat4.perspective_projection(
-            self.aspect_ratio, z_near=0.1, z_far=255
-        )
-        return pyglet.event.EVENT_HANDLED
 
 
 if __name__ == '__main__':

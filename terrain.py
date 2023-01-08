@@ -4,16 +4,11 @@ from pyglet.graphics.shader import Shader, ShaderProgram
 import numpy as np
 from PIL import Image
 
-DIFFUSE_MAP_UNIT = 0
-NORMAL_MAP_UNIT = 1
-
 
 class Terrain:
-    def __init__(self, size=300, max_height=15, batch=None):
+    def __init__(self, size=300, max_height=30, batch=None):
         """
         Object for a 3D terrain.
-        Args:
-            window (Window): The window that will display this terrain.
         """
         if not batch:
             self.batch = pyglet.graphics.Batch()
@@ -25,11 +20,6 @@ class Terrain:
         # Create height map
         height_map_img = Image.open('assets/sf-sm/height_map.png').convert('L')
         self.height_map = np.asarray(height_map_img) / 255 * max_height
-        # self.height_map = np.array([
-        #     [1, 0.8, 0.6],
-        #     [0.9, 0.5, 0.7],
-        #     [0.3, 0.7, 0.6]
-        # ])
         self.h, self.w = self.height_map.shape
 
         # Initialize vertices and indices
@@ -45,11 +35,12 @@ class Terrain:
             fs_str = f.read()
         frag_shader = Shader(fs_str, 'fragment')
         program = ShaderProgram(vert_shader, frag_shader)
-        program['light_pos'] = (0.0, 200.0, -150.0)
-        program['uv_scale'] = 3
+        # program['light_pos'] = (0.0, 200.0, -150.0)
+        program['uv_scale'] = 1
 
         # Set render group
-        render_group = RenderGroup(self.diffuse_map, self.normal_map, program)
+        # render_group = RenderGroup(self.diffuse_map, self.normal_map, program)
+        render_group = RenderGroup(self.diffuse_map, program)
         self.vertex_list = program.vertex_list_indexed(
             len(self.vertices), GL_TRIANGLE_STRIP, self.indices,
             batch=batch, group=render_group,
@@ -102,18 +93,20 @@ class Terrain:
 
 
 class RenderGroup(pyglet.graphics.Group):
-    def __init__(self, texture0, texture1, program):
+    # def __init__(self, texture0, texture1, program):
+    def __init__(self, texture0, program):
         super().__init__()
         self.texture0 = texture0
-        self.texture1 = texture1
+        # self.texture1 = texture1
         self.program = program
 
     def set_state(self):
-        self.program.use()
         glActiveTexture(GL_TEXTURE0)
         glBindTexture(self.texture0.target, self.texture0.id)
-        glActiveTexture(GL_TEXTURE1)
-        glBindTexture(self.texture1.target, self.texture1.id)
+        # glActiveTexture(GL_TEXTURE1)
+        # glBindTexture(self.texture1.target, self.texture1.id)
+        glEnable(GL_DEPTH_TEST)
+        self.program.use()
 
     def unset_state(self):
         self.program.stop()

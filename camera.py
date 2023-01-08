@@ -15,7 +15,7 @@ class FPSCamera:
         self.target = target
         self.up = up
 
-        self.speed = 3
+        self.speed = 30
 
         # TODO: calculate these values from the passed Vectors
         self.pitch = 0
@@ -41,7 +41,7 @@ class FPSCamera:
     def on_resize(self, width, height):
         self._window.viewport = (0, 0, *self._window.get_framebuffer_size())
         self._window.projection = Mat4.perspective_projection(
-            self._window.aspect_ratio, z_near=0.1, z_far=100, fov=45
+            self._window.aspect_ratio, z_near=0.1, z_far=1000, fov=45
         )
         return pyglet.event.EVENT_HANDLED
 
