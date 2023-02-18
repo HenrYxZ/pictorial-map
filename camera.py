@@ -1,3 +1,4 @@
+import glm
 from math import cos, sin, radians
 import pyglet
 from pyglet.math import Mat4, Vec3, clamp
@@ -19,8 +20,8 @@ class FPSCamera:
 
         # TODO: calculate these values from the passed Vectors
         self.pitch = 0
-        self.yaw = 2705
-        self.roll = 0
+        # self.yaw = 2705
+        self.yaw = 90
 
         self.input_map = {
             pyglet.window.key.W: "forward",
@@ -59,15 +60,29 @@ class FPSCamera:
 
         # Look
 
-        yaw = self.yaw * 0.1
-        pitch = self.pitch
-        self.target = Vec3(cos(radians(yaw)) * cos(radians(pitch)),
-                           sin(radians(pitch)),
-                           sin(radians(yaw)) * cos(radians(pitch))).normalize()
-
-        self._window.view = Mat4.look_at(
-            self.position, self.position + self.target, self.up
+        # yaw = self.yaw * 0.1
+        # pitch = self.pitch
+        # self.target = Vec3(cos(radians(yaw)) * cos(radians(pitch)),
+        #                    sin(radians(pitch)),
+        #                    sin(radians(yaw)) * cos(radians(pitch))).normalize()
+        phi = radians(self.yaw)
+        theta = radians(self.pitch)
+        self.target = Vec3(
+            sin(theta) * cos(phi),
+            cos(theta),
+            sin(theta) * sin(phi)
         )
+
+        eye = glm.vec3(*self.position)
+        center = glm.vec3(*(self.position + self.target))
+        up = glm.vec3(*self.up)
+
+        l = []
+        m = glm.lookAt(eye, center, up)
+        for c in m:
+            l.extend(c)
+
+        self._window.view = tuple(l)
 
     # Mouse input
 
@@ -76,8 +91,7 @@ class FPSCamera:
 
     def on_mouse_drag(self, x, y, dx, dy, buttons, mod):
         self.yaw += dx
-        self.pitch = clamp(self.pitch + dy, -89.0, 89.0)
-        # self.pitch += dy
+        self.pitch = clamp(self.pitch - dy, 0, 189.0)
 
     # Keyboard input
 

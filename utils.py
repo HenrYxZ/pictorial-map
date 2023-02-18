@@ -87,9 +87,9 @@ def sample_2d(x, y, img_arr):
     j = int(np.round(y))
     if i == 0 or j == 0 or i >= width or j >= height:
         if i >= width:
-            i = width - 1
+            i -= width
         if j >= height:
-            j -= height - 1
+            j -= height
         return img_arr[j][i]
     # t and s are interpolation parameters that go from 0 to 1
     t = x - i + 0.5
