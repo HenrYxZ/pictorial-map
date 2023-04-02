@@ -45,5 +45,5 @@ class Window(pyglet.window.Window):
 
 if __name__ == '__main__':
     window = Window()
-    camera = FPSCamera(window, position=Vec3(0, 3, 5))
+    camera = FPSCamera(window, position=Vec3(460, 405, 28))
     pyglet.app.run()

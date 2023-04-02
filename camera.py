@@ -2,6 +2,7 @@ import glm
 from math import cos, sin, radians
 import pyglet
 from pyglet.math import Mat4, Vec3, clamp
+from pyglet.window import key
 import weakref
 
 
@@ -24,10 +25,10 @@ class FPSCamera:
         self.yaw = 90
 
         self.input_map = {
-            pyglet.window.key.W: "forward",
-            pyglet.window.key.S: "backward",
-            pyglet.window.key.A: "left",
-            pyglet.window.key.D: "right",
+            key.W: "forward",
+            key.S: "backward",
+            key.A: "left",
+            key.D: "right",
         }
 
         self.forward = False
@@ -98,6 +99,8 @@ class FPSCamera:
     def on_key_press(self, symbol, mod):
         if symbol in self.input_map:
             setattr(self, self.input_map[symbol], True)
+        elif symbol == key.P:
+            print(self.position)
 
     def on_key_release(self, symbol, mod):
         if symbol in self.input_map:

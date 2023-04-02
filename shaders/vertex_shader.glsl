@@ -10,13 +10,16 @@ uniform WindowBlock
 uniform float uv_scale;
 in vec3 position;
 in vec2 tex_coords;
+in vec3 normal;
 
 out vec3 v_vert;
 out vec2 uv;
+out vec3 n;
 
 void main()
 {
     uv = tex_coords * uv_scale;
     v_vert = position;
+    n = normal;
     gl_Position = window.projection * window.view * vec4(position, 1.0);
 }

@@ -20,9 +20,9 @@ def normalize(arr):
     """
     Normalize a vector using numpy.
     Args:
-        arr(darray): Input vector
+        arr (ndarray): Input vector
     Returns:
-        darray: Normalized input vector
+        ndarray: Normalized input vector
     """
     norm = np.linalg.norm(arr)
     if norm == 0:
