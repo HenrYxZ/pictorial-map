@@ -1,9 +1,27 @@
 import pyglet
 from pyglet.gl import *
 from pyglet.graphics.shader import Shader, ShaderProgram
+from pyglet.graphics import ShaderGroup
 from pyglet.math import Vec2, Vec3
-import numpy as np
-from PIL import Image
+
+
+DEBUG_NORMALS = "normals"
+
+
+class RenderGroup(pyglet.graphics.Group):
+    def __init__(self, texture0, program):
+        super().__init__()
+        self.texture0 = texture0
+        self.program = program
+
+    def set_state(self):
+        glActiveTexture(GL_TEXTURE0)
+        glBindTexture(self.texture0.target, self.texture0.id)
+        glEnable(GL_DEPTH_TEST)
+        self.program.use()
+
+    def unset_state(self):
+        self.program.stop()
 
 
 class Vertex:
@@ -14,19 +32,21 @@ class Vertex:
 
 
 class Terrain:
-    def __init__(self, size=300, max_height=30, batch=None):
+    def __init__(
+        self, size, max_height, height_map, diffuse_map, batch=None
+    ):
         """
         Object for a 3D terrain.
         """
         if not batch:
             self.batch = pyglet.graphics.Batch()
+        self.debug_normals_batch = pyglet.graphics.Batch()
+        self.current_debug_mode = DEBUG_NORMALS
         self.size = size
         self.max_height = max_height
-        self.diffuse_map = pyglet.resource.texture('assets/sf-sm/surface.png')
+        self.height_map = height_map
 
         # Create height map
-        height_map_img = Image.open('assets/sf-sm/height_map.png').convert('L')
-        self.height_map = np.asarray(height_map_img) / 255 * max_height
         self.h, self.w = self.height_map.shape
 
         # Initialize vertices and indices
@@ -34,28 +54,53 @@ class Terrain:
         self.positions, self.tex_coords = self.init_vertices()
         self.indices = self.init_indices()
         self.normals = self.calculate_normals()
+        self._is_in_debug_mode = False
 
         # Read terrain shader program
         with open('shaders/vertex_shader.glsl', mode='r') as f:
             vs_str = f.read()
         vert_shader = Shader(vs_str, 'vertex')
+
         with open('shaders/fragment_shader.glsl', mode='r') as f:
             fs_str = f.read()
         frag_shader = Shader(fs_str, 'fragment')
+
+        with open('shaders/normals.glsl', mode='r') as f:
+            normals_fs_str = f.read()
+        normals_frag_shader = Shader(normals_fs_str, 'fragment')
+
         program = ShaderProgram(vert_shader, frag_shader)
         program['light_pos'] = (0.0, 200.0, -150.0)
         program['uv_scale'] = 1
 
         # Set render group
-        # render_group = RenderGroup(self.diffuse_map, self.normal_map, program)
-        render_group = RenderGroup(self.diffuse_map, program)
+        self.render_group = RenderGroup(diffuse_map, program)
         self.vertex_list = program.vertex_list_indexed(
             len(self.vertices), GL_TRIANGLE_STRIP, self.indices,
-            batch=batch, group=render_group,
+            batch=batch, group=self.render_group,
             position=('f', self.positions),
             tex_coords=('f', self.tex_coords),
             normal=('f', self.normals)
         )
+
+        debug_normals_program = ShaderProgram(vert_shader, normals_frag_shader)
+        self.normals_group = ShaderGroup(debug_normals_program)
+        self.normals_vli = debug_normals_program.vertex_list_indexed(
+            len(self.vertices), GL_TRIANGLE_STRIP, self.indices,
+            batch=batch, group=self.normals_group,
+            position=('f', self.positions),
+            normal=('f', self.normals)
+        )
+
+    @property
+    def is_in_debug_mode(self):
+        return self._is_in_debug_mode
+
+    @is_in_debug_mode.setter
+    def is_in_debug_mode(self, value):
+        self.normals_group.visible = value
+        self.render_group.visible = not value
+        self._is_in_debug_mode = value
 
     def init_vertices(self):
         positions = []
@@ -104,7 +149,7 @@ class Terrain:
         # Go row by row
         vertices_per_row = 2 * self.w + 3
         for j in range(self.h):
-            for i in range(0, self.w - 4, 2):
+            for i in range(0, self.w - 4, 4):
                 offset = j * vertices_per_row
                 idx0 = self.indices[i + offset]
                 idx1 = self.indices[i + 1 + offset]
@@ -138,22 +183,6 @@ class Terrain:
             normals += [normal.x, normal.y, normal.z]
         return normals
 
-
-class RenderGroup(pyglet.graphics.Group):
-    # def __init__(self, texture0, texture1, program):
-    def __init__(self, texture0, program):
-        super().__init__()
-        self.texture0 = texture0
-        # self.texture1 = texture1
-        self.program = program
-
-    def set_state(self):
-        glActiveTexture(GL_TEXTURE0)
-        glBindTexture(self.texture0.target, self.texture0.id)
-        # glActiveTexture(GL_TEXTURE1)
-        # glBindTexture(self.texture1.target, self.texture1.id)
-        glEnable(GL_DEPTH_TEST)
-        self.program.use()
-
-    def unset_state(self):
-        self.program.stop()
+    def debug(self):
+        if self.current_debug_mode == DEBUG_NORMALS:
+            self.normals_vli

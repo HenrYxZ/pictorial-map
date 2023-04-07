@@ -6,12 +6,17 @@ from pyglet.window import key
 import weakref
 
 
+SENSITIVITY = 0.3
+
+
 class FPSCamera:
     def __init__(
         self, window,
         position=Vec3(0, 0, 0),
         target=Vec3(0, 0, -1),
-        up=Vec3(0, 1, 0)
+        up=Vec3(0, 1, 0),
+        pitch=130,
+        yaw=-137
     ):
         self.position = position
         self.target = target
@@ -20,9 +25,8 @@ class FPSCamera:
         self.speed = 30
 
         # TODO: calculate these values from the passed Vectors
-        self.pitch = 0
-        # self.yaw = 2705
-        self.yaw = 90
+        self.pitch = pitch
+        self.yaw = yaw
 
         self.input_map = {
             key.W: "forward",
@@ -61,11 +65,6 @@ class FPSCamera:
 
         # Look
 
-        # yaw = self.yaw * 0.1
-        # pitch = self.pitch
-        # self.target = Vec3(cos(radians(yaw)) * cos(radians(pitch)),
-        #                    sin(radians(pitch)),
-        #                    sin(radians(yaw)) * cos(radians(pitch))).normalize()
         phi = radians(self.yaw)
         theta = radians(self.pitch)
         self.target = Vec3(
@@ -91,8 +90,8 @@ class FPSCamera:
         pass
 
     def on_mouse_drag(self, x, y, dx, dy, buttons, mod):
-        self.yaw += dx
-        self.pitch = clamp(self.pitch - dy, 0, 189.0)
+        self.yaw += dx * SENSITIVITY
+        self.pitch = clamp(self.pitch - dy * SENSITIVITY, 0, 189.0)
 
     # Keyboard input
 
@@ -100,7 +99,8 @@ class FPSCamera:
         if symbol in self.input_map:
             setattr(self, self.input_map[symbol], True)
         elif symbol == key.P:
-            print(self.position)
+            print(f"position: {self.position}")
+            print(f"pitch: {self.pitch}, yaw: {self.yaw}")
 
     def on_key_release(self, symbol, mod):
         if symbol in self.input_map:

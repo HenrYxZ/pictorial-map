@@ -1,5 +1,8 @@
 import json
+import numpy as np
+from PIL import Image
 import pyglet
+from pyglet.window import key
 from pyglet.math import Vec3
 import sys
 
@@ -31,14 +34,29 @@ class Window(pyglet.window.Window):
         config_path = f"assets/{chosen_option}/{CONFIG_FILENAME}"
         with open(config_path, 'r') as f:
             config = json.load(f)
+        # Load height map
+        height_map_img = Image.open(
+            f'assets/{chosen_option}/{HEIGHT_MAP_FILENAME}'
+        ).convert('L')
+        height_map = np.asarray(height_map_img) / 255 * config['maxHeight']
+        # Load diffuse map
+        diffuse_map = pyglet.resource.texture(
+            f'assets/{chosen_option}/{SURFACE_TEXTURE}'
+        )
         # Create terrain
         self.terrain = Terrain(
-            size=config['mapSize'], max_height=config['maxHeight'], batch=batch
+            config['mapSize'], config['maxHeight'], height_map,
+            diffuse_map, batch=batch
         )
         timer.stop()
         print(f"Elapsed time generating terrain was {timer}")
 
-    def on_draw(self):
+    def on_key_press(self, symbol, modifiers):
+        if symbol == key.N:
+            self.terrain.is_in_debug_mode = not self.terrain.is_in_debug_mode
+        super().on_key_press(symbol, modifiers)
+
+    def on_draw(self, **kwargs):
         self.clear()
         batch.draw()
 
