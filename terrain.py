@@ -111,7 +111,7 @@ class Terrain:
         for j in range(self.h):
             for i in range(self.w):
                 x = -self.size / 2 + (i / self.w) * self.size
-                y = self.height_map[j, i]
+                y = self.height_map[self.h - 1 - j, i]
                 z = -(j / self.h) * self.size
                 pos = [x, y, z]
                 positions += pos
@@ -155,7 +155,7 @@ class Terrain:
         # Go row by row
         vertices_per_row = 2 * self.w + 3
         for j in range(self.h):
-            for i in range(0, vertices_per_row - 4, 4):
+            for i in range(0, 2 * self.w - 1, 4):
                 offset = j * vertices_per_row
                 idx0 = self.indices[i + offset]
                 idx1 = self.indices[i + 1 + offset]

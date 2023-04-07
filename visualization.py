@@ -2,6 +2,7 @@ import json
 import numpy as np
 from PIL import Image
 import pyglet
+from pyglet.gl import *
 from pyglet.window import key
 from pyglet.math import Vec3
 import sys
@@ -57,6 +58,7 @@ class Window(pyglet.window.Window):
         super().on_key_press(symbol, modifiers)
 
     def on_draw(self, **kwargs):
+        glClearColor(135 / 255.0, 206 / 255.0, 235 / 255.0, 1.0)
         self.clear()
         batch.draw()
 
