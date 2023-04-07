@@ -98,7 +98,10 @@ class Terrain:
 
     @is_in_debug_mode.setter
     def is_in_debug_mode(self, value):
-        self.normals_group.visible = value
+        if self.current_debug_mode == DEBUG_NORMALS:
+            self.normals_group.visible = value
+        else:
+            self.normals_group.visible = False
         self.render_group.visible = not value
         self._is_in_debug_mode = value
 
@@ -143,13 +146,16 @@ class Terrain:
             top_idx = (self.h - 1) * self.w + i
             indices.append(bottom_idx)
             indices.append(top_idx)
+        last_idx = self.h * self.w - 1
+        for _ in range(3):
+            indices.append(last_idx)
         return indices
 
     def calculate_normals(self):
         # Go row by row
         vertices_per_row = 2 * self.w + 3
         for j in range(self.h):
-            for i in range(0, self.w - 4, 4):
+            for i in range(0, vertices_per_row - 4, 4):
                 offset = j * vertices_per_row
                 idx0 = self.indices[i + offset]
                 idx1 = self.indices[i + 1 + offset]
@@ -182,7 +188,3 @@ class Terrain:
             normal = v.normal.normalize()
             normals += [normal.x, normal.y, normal.z]
         return normals
-
-    def debug(self):
-        if self.current_debug_mode == DEBUG_NORMALS:
-            self.normals_vli
