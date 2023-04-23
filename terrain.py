@@ -5,7 +5,9 @@ from pyglet.graphics import ShaderGroup
 from pyglet.math import Vec2, Vec3
 
 
-DEBUG_NORMALS = "normals"
+DRAW_MODE_SURFACE = "surface"
+DRAW_MODE_NORMALS = "normals"
+DRAW_MODE_WIREFRAME = "wireframe"
 
 
 class RenderGroup(pyglet.graphics.Group):
@@ -40,8 +42,7 @@ class Terrain:
         """
         if not batch:
             self.batch = pyglet.graphics.Batch()
-        self.debug_normals_batch = pyglet.graphics.Batch()
-        self.current_debug_mode = DEBUG_NORMALS
+        self._draw_mode = DRAW_MODE_NORMALS
         self.size = size
         self.max_height = max_height
         self.height_map = height_map
@@ -69,6 +70,10 @@ class Terrain:
             normals_fs_str = f.read()
         normals_frag_shader = Shader(normals_fs_str, 'fragment')
 
+        with open('shaders/wireframe.glsl', mode='r') as f:
+            wireframe_fs_str = f.read()
+        wireframe_frag_shader = Shader(wireframe_fs_str, 'fragment')
+
         program = ShaderProgram(vert_shader, frag_shader)
         program['light_pos'] = (0.0, 200.0, -150.0)
         program['uv_scale'] = 1
@@ -83,27 +88,50 @@ class Terrain:
             normal=('f', self.normals)
         )
 
-        debug_normals_program = ShaderProgram(vert_shader, normals_frag_shader)
-        self.normals_group = ShaderGroup(debug_normals_program)
-        self.normals_vli = debug_normals_program.vertex_list_indexed(
+        # Draw normals
+        draw_normals_program = ShaderProgram(vert_shader, normals_frag_shader)
+        self.normals_group = ShaderGroup(draw_normals_program)
+        self.normals_vli = draw_normals_program.vertex_list_indexed(
             len(self.vertices), GL_TRIANGLE_STRIP, self.indices,
             batch=batch, group=self.normals_group,
             position=('f', self.positions),
             normal=('f', self.normals)
         )
+        self.normals_group.visible = False
+
+        # Draw wireframe
+        wireframe_program = ShaderProgram(vert_shader, wireframe_frag_shader)
+        self.wireframe_group = ShaderGroup(wireframe_program)
+        self.wireframe_vli = wireframe_program.vertex_list_indexed(
+            len(self.vertices), GL_TRIANGLE_STRIP, self.indices,
+            batch=batch, group=self.wireframe_group,
+            position=('f', self.positions)
+        )
+        self.wireframe_group.visible = False
+
+        self.draw_groups = (
+            (DRAW_MODE_SURFACE, self.render_group),
+            (DRAW_MODE_NORMALS, self.normals_group),
+            (DRAW_MODE_WIREFRAME, self.wireframe_group)
+        )
+        self.polygon_mode = GL_FILL
 
     @property
-    def is_in_debug_mode(self):
-        return self._is_in_debug_mode
+    def draw_mode(self):
+        return self._draw_mode
 
-    @is_in_debug_mode.setter
-    def is_in_debug_mode(self, value):
-        if self.current_debug_mode == DEBUG_NORMALS:
-            self.normals_group.visible = value
+    @draw_mode.setter
+    def draw_mode(self, value):
+        self._draw_mode = value
+        if value == DRAW_MODE_WIREFRAME:
+            self.polygon_mode = GL_LINE
         else:
-            self.normals_group.visible = False
-        self.render_group.visible = not value
-        self._is_in_debug_mode = value
+            self.polygon_mode = GL_FILL
+        for draw_mode, draw_group in self.draw_groups:
+            if draw_mode == value:
+                draw_group.visible = True
+            else:
+                draw_group.visible = False
 
     def init_vertices(self):
         positions = []

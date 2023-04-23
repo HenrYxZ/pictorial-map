@@ -35,3 +35,7 @@ JSON_INDENT = 2
 EXIT_CODE = -1
 # Orientation sample size
 ORIENT_SAMPLE_SIZE = 5
+
+# Windows mode
+DEBUG_MODE = 0
+NORMAL_MODE = 1

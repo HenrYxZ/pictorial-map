@@ -1,5 +1,6 @@
 from PIL import Image
 from progress.bar import Bar
+from pyglet.math import Mat4
 import numpy as np
 import os
 import os.path
@@ -62,7 +63,7 @@ def normalize_color(color):
 
 
 def lerp(a, b, t):
-    return t * a  + (1 - t) * b
+    return t * a + (1 - t) * b
 
 
 def blerp(u, v, img_arr):
@@ -210,3 +211,20 @@ class Point:
 class ProgressBar(Bar):
     suffix = '%(percent)d%% [%(elapsed_td)s / %(eta_td)s]'
     check_tty = False
+
+
+class OrthographicView:
+    def __init__(self, window):
+        self.window = window
+
+    def __enter__(self):
+        self.view = self.window.view
+        self.projection = self.window.projection
+        self.window.view = Mat4()
+        self.window.projection = Mat4.orthogonal_projection(
+            0, self.window.width, 0, self.window.height, -255, 255
+        )
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.window.view = self.view
+        self.window.projection = self.projection
